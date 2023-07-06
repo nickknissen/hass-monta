@@ -37,7 +37,7 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 ***
 
-[monta]: https://github.com/nickknissen/hass-monta
+[monta]: https://docs.public-api.monta.com
 [commits-shield]: https://img.shields.io/github/commit-activity/y/nickknissen/hass-monta.svg?style=for-the-badge
 [commits]: https://github.com/nickknissen/hass-monta/commits/main
 [hacs]: https://github.com/hacs/integration
