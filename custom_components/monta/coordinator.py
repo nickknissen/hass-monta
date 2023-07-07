@@ -25,24 +25,41 @@ class MontaDataUpdateCoordinator(DataUpdateCoordinator):
 
     config_entry: ConfigEntry
 
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        client: MontaApiClient,
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, client: MontaApiClient) -> None:
         """Initialize."""
         self.client = client
         super().__init__(
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(minutes=5),
+            update_interval=timedelta(seconds=30),
         )
 
     async def _async_update_data(self):
         """Update data via library."""
         try:
-            return await self.client.async_get_data()
+            return await self.client.async_get_charge_points()
+        except MontaApiClientAuthenticationError as exception:
+            raise ConfigEntryAuthFailed(exception) from exception
+        except MontaApiClientError as exception:
+            raise UpdateFailed(exception) from exception
+
+    async def async_start_charge(self, charge_point_id: int):
+        """Start a charge."""
+        try:
+            return await self.client.async_start_charge(charge_point_id)
+        except MontaApiClientAuthenticationError as exception:
+            raise ConfigEntryAuthFailed(exception) from exception
+        except MontaApiClientError as exception:
+            raise UpdateFailed(exception) from exception
+
+    async def async_stop_charge(self, charge_point_id: int):
+        """Stop a charge."""
+
+        charges = await self.client.async_get_charges(charge_point_id)
+
+        try:
+            return await self.client.async_stop_charge(charges[0]["id"])
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except MontaApiClientError as exception:

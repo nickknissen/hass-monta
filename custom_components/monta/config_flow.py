@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_CLIENT_SECRET, CONF_CLIENT_ID
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.storage import Store
 
 from .api import (
     MontaApiClient,
@@ -13,7 +14,7 @@ from .api import (
     MontaApiClientCommunicationError,
     MontaApiClientError,
 )
-from .const import DOMAIN, LOGGER
+from .const import DOMAIN, LOGGER, STORAGE_KEY, STORAGE_VERSION
 
 
 class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -30,8 +31,8 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await self._test_credentials(
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
+                    client_id=user_input[CONF_CLIENT_ID],
+                    client_secret=user_input[CONF_CLIENT_SECRET],
                 )
             except MontaApiClientAuthenticationError as exception:
                 LOGGER.warning(exception)
@@ -44,7 +45,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _errors["base"] = "unknown"
             else:
                 return self.async_create_entry(
-                    title=user_input[CONF_USERNAME],
+                    title=user_input[CONF_CLIENT_ID],
                     data=user_input,
                 )
 
@@ -53,14 +54,14 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_USERNAME,
-                        default=(user_input or {}).get(CONF_USERNAME),
+                        CONF_CLIENT_ID,
+                        default=(user_input or {}).get(CONF_CLIENT_ID),
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT
                         ),
                     ),
-                    vol.Required(CONF_PASSWORD): selector.TextSelector(
+                    vol.Required(CONF_CLIENT_SECRET): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD
                         ),
@@ -70,11 +71,12 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=_errors,
         )
 
-    async def _test_credentials(self, username: str, password: str) -> None:
+    async def _test_credentials(self, client_id: str, client_secret: str) -> None:
         """Validate credentials."""
         client = MontaApiClient(
-            username=username,
-            password=password,
+            client_id=client_id,
+            client_secret=client_secret,
             session=async_create_clientsession(self.hass),
+            store=Store(self.hass, STORAGE_VERSION, STORAGE_KEY),
         )
-        await client.async_get_data()
+        await client.async_request_access_token()

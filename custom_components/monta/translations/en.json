@@ -2,15 +2,15 @@
     "config": {
         "step": {
             "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/nickknissen/hass-monta",
+                "description": "Client id and secret are obtained from https://portal2.monta.app/applications",
                 "data": {
-                    "username": "Username",
-                    "password": "Password"
+                    "client_id": "Client id",
+                    "client_secret": "client secret"
                 }
             }
         },
         "error": {
-            "auth": "Username/Password is wrong.",
+            "auth": "Client id/client secret is wrong.",
             "connection": "Unable to connect to the server.",
             "unknown": "Unknown error occurred."
         }

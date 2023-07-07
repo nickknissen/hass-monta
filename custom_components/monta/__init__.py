@@ -6,12 +6,13 @@ https://github.com/nickknissen/hass-monta
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import MontaApiClient
-from .const import DOMAIN
+from .const import DOMAIN, STORAGE_KEY, STORAGE_VERSION
 from .coordinator import MontaDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [
@@ -28,9 +29,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = coordinator = MontaDataUpdateCoordinator(
         hass=hass,
         client=MontaApiClient(
-            username=entry.data[CONF_USERNAME],
-            password=entry.data[CONF_PASSWORD],
+            client_id=entry.data[CONF_CLIENT_ID],
+            client_secret=entry.data[CONF_CLIENT_SECRET],
             session=async_get_clientsession(hass),
+            store=Store(hass, STORAGE_VERSION, STORAGE_KEY),
         ),
     )
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
