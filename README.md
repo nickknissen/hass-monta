@@ -33,9 +33,6 @@ Platform | Description
 
 ## Contributions are welcome!
 
-## Inspiration
-https://github.com/home-assistant/core/blob/23d5fb962211f95cce9dc34458fa321752399b82/homeassistant/components/alexa/auth.py#L11
-
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
 
 ***
