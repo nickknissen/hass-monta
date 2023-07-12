@@ -5,7 +5,7 @@ import asyncio
 import socket
 import logging
 import json
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 import aiohttp
 import async_timeout
