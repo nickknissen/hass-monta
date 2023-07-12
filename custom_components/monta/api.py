@@ -206,7 +206,7 @@ class MontaApiClient:
             async with async_timeout.timeout(10):
                 response = await self._session.request(
                     method=method,
-                    path=f"{base_url}/{path}",
+                    url=f"{base_url}/{path}",
                     headers=all_headers,
                     json=data,
                 )
