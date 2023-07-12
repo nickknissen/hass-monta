@@ -283,6 +283,11 @@ class MontaApiClient:
         if self._prefs[STORAGE_ACCESS_EXPIRE_TIME] is None:
             return False
 
+        _LOGGER.debug("[_is_access_token_valid] STORAGE_ACCESS_EXPIRE_TIME: %s, type: %s", self._prefs[STORAGE_ACCESS_EXPIRE_TIME], type(self._prefs[STORAGE_ACCESS_EXPIRE_TIME]))
+
+        if not isinstance(self._prefs[STORAGE_ACCESS_EXPIRE_TIME], str):
+            return False
+
         expire_time = dt_util.parse_datetime(self._prefs[STORAGE_ACCESS_EXPIRE_TIME])
         preemptive_expire_time = expire_time - timedelta(
             seconds=PREEMPTIVE_REFRESH_TTL_IN_SECONDS
@@ -295,7 +300,12 @@ class MontaApiClient:
         if not self._prefs[STORAGE_REFRESH_TOKEN]:
             return False
 
-        if self._prefs[STORAGE_ACCESS_EXPIRE_TIME] is None:
+        if self._prefs[STORAGE_REFRESH_EXPIRE_TIME] is None:
+            return False
+
+        _LOGGER.debug("[_is_refresh_token_valid] STORAGE_REFRESH_EXPIRE_TIME: %s, type: %s", self._prefs[STORAGE_ACCESS_EXPIRE_TIME], type(self._prefs[STORAGE_REFRESH_EXPIRE_TIME]))
+
+        if not isinstance(self._prefs[STORAGE_REFRESH_EXPIRE_TIME], str):
             return False
 
         expire_time = dt_util.parse_datetime(self._prefs[STORAGE_REFRESH_EXPIRE_TIME])
