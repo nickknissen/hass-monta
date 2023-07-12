@@ -30,7 +30,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         _errors = {}
         if user_input is not None:
             try:
-                await self._test_credentials(
+                response = await self._test_credentials(
                     client_id=user_input[CONF_CLIENT_ID],
                     client_secret=user_input[CONF_CLIENT_SECRET],
                 )
@@ -45,7 +45,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _errors["base"] = "unknown"
             else:
                 return self.async_create_entry(
-                    title=user_input[CONF_CLIENT_ID],
+                    title=f"Monta account {response['userId']}",
                     data=user_input,
                 )
 
@@ -71,7 +71,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=_errors,
         )
 
-    async def _test_credentials(self, client_id: str, client_secret: str) -> None:
+    async def _test_credentials(self, client_id: str, client_secret: str) -> any:
         """Validate credentials."""
         client = MontaApiClient(
             client_id=client_id,
@@ -79,4 +79,4 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             session=async_create_clientsession(self.hass),
             store=Store(self.hass, STORAGE_VERSION, STORAGE_KEY),
         )
-        await client.async_request_access_token()
+        return await client.async_request_token()

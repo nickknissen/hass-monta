@@ -68,7 +68,7 @@ class MontaApiClient:
 
         self._get_token_lock = asyncio.Lock()
 
-    async def async_request_access_token(self) -> any:
+    async def async_request_token(self) -> any:
         """Obtain access token with clientId and secret."""
 
         params = {"clientId": self._client_id, "clientSecret": self._client_secret}
@@ -82,6 +82,13 @@ class MontaApiClient:
             method="post",
             data=params,
         )
+
+        return response_json
+
+    async def async_authenticate(self) -> str:
+        """Obtain access token and store it in preferences."""
+
+        response_json = await self.async_request_token()
 
         await self._async_update_preferences(
             response_json["accessToken"],
@@ -183,7 +190,7 @@ class MontaApiClient:
 
                 return response_json["accessToken"]
 
-            return await self.async_request_access_token()
+            return await self.async_authenticate()
 
     async def _api_wrapper(
         self,
