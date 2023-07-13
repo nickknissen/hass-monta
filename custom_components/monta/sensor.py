@@ -17,6 +17,7 @@ from homeassistant.components.sensor import (
 from .const import DOMAIN, ChargerStatus
 from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
+from .utils import snake_case
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,20 +77,18 @@ class MontaSensor(MontaEntity, SensorEntity):
         self,
         coordinator: MontaDataUpdateCoordinator,
         _: ConfigEntry,
-        description: SensorEntityDescription,
+        entity_description: SensorEntityDescription,
         charge_point_id: int,
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(coordinator, charge_point_id)
 
-        self.entity_description = description
+        self.entity_description = entity_description
         self.entity_id = generate_entity_id(
-            "sensor.{}", description.key, [charge_point_id]
+            "sensor.{}", snake_case(entity_description.key), [charge_point_id]
         )
-        self._attr_name = description.name
-        self._attr_unique_id = f"{description.key}"
-
-        self.charge_point_id = charge_point_id
+        self._attr_name = entity_description.name
+        self._attr_unique_id = snake_case(entity_description.key)
 
     @property
     def native_value(self) -> str:

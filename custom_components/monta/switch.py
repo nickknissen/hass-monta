@@ -10,10 +10,11 @@ from homeassistant.helpers.entity import generate_entity_id
 from .const import DOMAIN, ChargerStatus
 from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
+from .utils import snake_case
 
 ENTITY_DESCRIPTIONS = (
     SwitchEntityDescription(
-        key="charger_control-charging",
+        key="charger",
         name="Start/Stop",
     ),
 )
@@ -49,10 +50,10 @@ class MontaSwitch(MontaEntity, SwitchEntity):
         super().__init__(coordinator, charge_point_id)
         self.entity_description = entity_description
         self.entity_id = generate_entity_id(
-            "switch.{}", entity_description.key, [charge_point_id]
+            "switch.{}", snake_case(entity_description.key), [charge_point_id]
         )
         self._attr_name = entity_description.name
-        self._attr_unique_id = f"{entity_description.key}"
+        self._attr_unique_id = snake_case(entity_description.key)
 
     @property
     def available(self) -> bool:
