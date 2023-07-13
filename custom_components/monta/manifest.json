@@ -8,5 +8,9 @@
   "documentation": "https://github.com/nickknissen/hass-monta",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/nickknissen/hass-monta/issues",
-  "version": "0.0.0"
+  "version": "0.0.0",
+  "integration_type": "hub",
+  "loggers": [
+    "custom_components.monta"
+  ]
 }
