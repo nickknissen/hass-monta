@@ -23,6 +23,17 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+PRIVATE_INFORMATION = [
+    'accessToken',
+    'refreshToken',
+    'serialNumber',
+    'latitude',
+    'longitude',
+    'address1',
+    'address2',
+    'address3'
+]
+
 
 class MontaApiClientError(Exception):
     """Exception to indicate a general API error."""
@@ -72,10 +83,6 @@ class MontaApiClient:
         """Obtain access token with clientId and secret."""
 
         params = {"clientId": self._client_id, "clientSecret": self._client_secret}
-        _LOGGER.debug(
-            "Requesting access token with: %s",
-            json.dumps(params),
-        )
 
         response_json = await self._api_wrapper(
             path="auth/token",
@@ -110,8 +117,6 @@ class MontaApiClient:
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        _LOGGER.debug("Fetched charge points %s", json.dumps(response))
-
         return {item["id"]: item for item in response["data"]}
 
     async def async_get_charges(self, charge_point_id: int) -> any:
@@ -124,8 +129,6 @@ class MontaApiClient:
             path=f"charges?chargePointId={charge_point_id}",
             headers={"authorization": f"Bearer {access_token}"},
         )
-
-        _LOGGER.debug("Fetched charges %s", json.dumps(response))
 
         return sorted(response["data"], key=lambda charge: -charge["id"])
 
@@ -192,6 +195,21 @@ class MontaApiClient:
 
             return await self.async_authenticate()
 
+    def _filter_private_information(self, data):
+        if isinstance(data, dict):
+            filtered_data = {}
+            for key, value in data.items():
+                if isinstance(value, dict | list):
+                    filtered_data[key] = self._filter_private_information(value)
+                else:
+                    filtered_data[key] = '*' * len(str(value)) if key in PRIVATE_INFORMATION else value
+            return filtered_data
+        elif isinstance(data, list):  # Recursively filter nested lists
+            return [self._filter_private_information(item) for item in data]
+        else:
+            return data
+
+
     async def _api_wrapper(
         self,
         method: str,
@@ -226,9 +244,13 @@ class MontaApiClient:
                         "Invalid credentials",
                     )
                 response.raise_for_status()
-
                 response_json = await response.json()
-                _LOGGER.debug("response body  : %s", response_json)
+
+                _LOGGER.debug(
+                    "response body : %s",
+                    self._filter_private_information(response_json)
+                )
+
                 return response_json
 
         except asyncio.TimeoutError as exception:
