@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import socket
 import logging
-import json
 from datetime import timedelta
 
 import aiohttp
@@ -82,12 +81,10 @@ class MontaApiClient:
     async def async_request_token(self) -> any:
         """Obtain access token with clientId and secret."""
 
-        params = {"clientId": self._client_id, "clientSecret": self._client_secret}
-
         response_json = await self._api_wrapper(
             path="auth/token",
             method="post",
-            data=params,
+            data={"clientId": self._client_id, "clientSecret": self._client_secret},
         )
 
         return response_json
@@ -136,6 +133,8 @@ class MontaApiClient:
         """Start a charge."""
         access_token = await self.async_get_access_token()
 
+        _LOGGER.debug("Trying to start a charge on: %s", charge_point_id)
+
         response = await self._api_wrapper(
             method="post",
             path="charges",
@@ -143,7 +142,7 @@ class MontaApiClient:
             data={"chargePointId": charge_point_id},
         )
 
-        _LOGGER.debug("Started a charge: %s", json.dumps(response))
+        _LOGGER.debug("Started a charge on: %s", charge_point_id)
 
         return response
 
@@ -151,13 +150,15 @@ class MontaApiClient:
         """Start a charge."""
         access_token = await self.async_get_access_token()
 
+        _LOGGER.debug("Trying to stop a charge with id: %s", charge_id)
+
         response = await self._api_wrapper(
             method="post",
             path=f"charges/{charge_id}/stop",
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        _LOGGER.debug("Stopped charge: %s", json.dumps(response))
+        _LOGGER.debug("Stopped charge for chargeId: %s <%s>", charge_id, response)
 
         return response
 
@@ -168,15 +169,12 @@ class MontaApiClient:
                 await self.async_load_preferences()
 
             if self._is_access_token_valid():
-                _LOGGER.debug("Token still valid, using it")
+                _LOGGER.debug("Access Token still valid, using it")
                 return self._prefs[STORAGE_ACCESS_TOKEN]
 
             if self._is_refresh_token_valid():
+                _LOGGER.debug("Refresh Token still valid, using it")
                 params = {"refreshToken": self._prefs[STORAGE_REFRESH_TOKEN]}
-                _LOGGER.debug(
-                    "Requesting access token with: %s",
-                    json.dumps(params),
-                )
 
                 response_json = await self._api_wrapper(
                     path="auth/refresh",
@@ -193,6 +191,7 @@ class MontaApiClient:
 
                 return response_json["accessToken"]
 
+            _LOGGER.debug("No token is valid, Requesting a new tokens")
             return await self.async_authenticate()
 
     def _filter_private_information(self, data):
@@ -308,7 +307,6 @@ class MontaApiClient:
         expire_time = self._prefs[STORAGE_ACCESS_EXPIRE_TIME]
         if isinstance(expire_time, str):
             expire_time = dt_util.parse_datetime(self._prefs[STORAGE_ACCESS_EXPIRE_TIME])
-
 
         preemptive_expire_time = expire_time - timedelta(
             seconds=PREEMPTIVE_REFRESH_TTL_IN_SECONDS
