@@ -1,0 +1,15 @@
+start_charge:
+  target:
+    device:
+      integration: monta
+    entity:
+      integration: monta
+      domain: binary_sensor
+
+stop_charge:
+  target:
+    device:
+      integration: monta
+    entity:
+      integration: monta
+      domain: binary_sensor

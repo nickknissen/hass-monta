@@ -14,5 +14,15 @@
             "connection": "Unable to connect to the server.",
             "unknown": "Unknown error occurred."
         }
+    },
+    "services": {
+        "start_charge": {
+            "description": "Start charge on selected charger",
+            "name": "Start Charge"
+        },
+        "stop_charge": {
+            "description": "Stop charge on selected charger.",
+            "name": "Stop Charge"
+        }
     }
 }
