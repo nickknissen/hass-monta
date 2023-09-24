@@ -49,6 +49,13 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.ENUM,
         options=[x.value for x in ChargerStatus],
     ),
+    SensorEntityDescription(
+        key="charger_lastMeterReadingKwh",
+        name="Last meter reading",
+        icon="mdi:counter",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement="kWh",
+    ),
 )
 
 
