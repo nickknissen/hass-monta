@@ -8,7 +8,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.helpers import entity_platform
+
 from homeassistant.helpers.entity import generate_entity_id
 
 from .const import DOMAIN
