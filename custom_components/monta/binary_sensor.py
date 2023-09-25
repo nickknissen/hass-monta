@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 
-import voluptuous as vol
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -42,10 +41,6 @@ async def async_setup_entry(hass, entry, async_add_devices):
             for entity_description in ENTITY_DESCRIPTIONS
         )
 
-    platform = entity_platform.async_get_current_platform()
-    platform.async_register_entity_service("start_charge", {}, "start_charge")
-    platform.async_register_entity_service("stop_charge", {}, "stop_charge")
-
 
 class MontaBinarySensor(MontaEntity, BinarySensorEntity):
     """monta binary_sensor class."""
@@ -72,22 +67,3 @@ class MontaBinarySensor(MontaEntity, BinarySensorEntity):
         return self.coordinator.data[self.charge_point_id].get(
             self.entity_description.key, False
         )
-
-    async def start_charge(self):
-        """Start charge."""
-        if (
-            self.coordinator.data[self.charge_point_id]["state"] == "available"
-            and self.coordinator.data[self.charge_point_id][self.entity_description.key]
-        ):
-            await self.coordinator.async_start_charge(self.charge_point_id)
-            return
-
-        raise vol.Invalid("Charger not plugged in and available for charge")
-
-    async def stop_charge(self):
-        """Stop charge."""
-        if self.coordinator.data[self.charge_point_id]["state"].startswith("busy"):
-            await self.coordinator.async_stop_charge(self.charge_point_id)
-            return
-
-        raise vol.Invalid("Charger not currently charging")

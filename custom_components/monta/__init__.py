@@ -14,6 +14,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import MontaApiClient
 from .const import DOMAIN, STORAGE_KEY, STORAGE_VERSION
 from .coordinator import MontaDataUpdateCoordinator
+from .services import async_setup_services
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
@@ -39,6 +40,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    await async_setup_services(hass, entry)
+
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True

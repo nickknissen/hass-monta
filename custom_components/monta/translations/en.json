@@ -16,13 +16,13 @@
         }
     },
     "services": {
-        "start_charge": {
+        "start_charging": {
             "description": "Start charge on selected charger",
-            "name": "Start Charge"
+            "name": "Start charging"
         },
-        "stop_charge": {
+        "stop_charging": {
             "description": "Stop charge on selected charger.",
-            "name": "Stop Charge"
+            "name": "Stop charging"
         }
     }
 }

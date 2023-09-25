@@ -1,15 +1,15 @@
-start_charge:
-  target:
-    device:
-      integration: monta
-    entity:
-      integration: monta
-      domain: binary_sensor
+start_charging:
+  description: "Start charging"
+  fields:
+    charge_point_id:
+      required: true
+      description: "The charger point id"
+      example: 1234
 
-stop_charge:
-  target:
-    device:
-      integration: monta
-    entity:
-      integration: monta
-      domain: binary_sensor
+stop_charging:
+  description: "Stop charging"
+  fields:
+    charge_point_id:
+      required: true
+      description: "The charger point id"
+      example: 1234
