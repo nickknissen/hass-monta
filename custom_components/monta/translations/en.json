@@ -18,11 +18,21 @@
     "services": {
         "start_charging": {
             "description": "Start charge on selected charger",
-            "name": "Start charging"
+            "name": "Start charging",
+            "fields": {
+                "charge_point_id": {
+                  "name": "Charge point id",
+                  "description": "The ID of the charger."
+            }
         },
         "stop_charging": {
             "description": "Stop charge on selected charger.",
-            "name": "Stop charging"
+            "name": "Stop charging",
+            "fields": {
+                "charge_point_id": {
+                  "name": "Charge point id",
+                  "description": "The ID of the charger."
+            }
         }
     }
 }
