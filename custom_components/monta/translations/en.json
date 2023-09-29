@@ -1,18 +1,41 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "description": "Client id and secret are obtained from https://portal2.monta.app/applications",
-                "data": {
-                    "client_id": "Client id",
-                    "client_secret": "client secret"
-                }
-            }
-        },
-        "error": {
-            "auth": "Client id/client secret is wrong.",
-            "connection": "Unable to connect to the server.",
-            "unknown": "Unknown error occurred."
-        }
-    }
+	"config": {
+		"step": {
+			"user": {
+				"description": "Client id and secret are obtained from https://portal2.monta.app/applications",
+				"data": {
+					"client_id": "Client id",
+					"client_secret": "client secret"
+				}
+			}
+		},
+		"error": {
+			"auth": "Client id/client secret is wrong.",
+			"connection": "Unable to connect to the server.",
+			"unknown": "Unknown error occurred."
+		}
+	},
+	"services": {
+		"start_charging": {
+			"description": "Start charge on selected charger",
+			"name": "Start charging",
+			"fields": {
+				"charge_point_id": {
+					"name": "Charge point id",
+					"description": "The ID of the charger."
+				}
+
+			}
+		},
+		"stop_charging": {
+			"description": "Stop charge on selected charger.",
+			"name": "Stop charging",
+			"fields": {
+				"charge_point_id": {
+					"name": "Charge point id",
+					"description": "The ID of the charger."
+				}
+			}
+		}
+	}
 }

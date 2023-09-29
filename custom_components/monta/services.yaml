@@ -1,0 +1,15 @@
+start_charging:
+  description: "Start charging"
+  fields:
+    charge_point_id:
+      required: true
+      description: "The charger point id"
+      example: 1234
+
+stop_charging:
+  description: "Stop charging"
+  fields:
+    charge_point_id:
+      required: true
+      description: "The charger point id"
+      example: 1234

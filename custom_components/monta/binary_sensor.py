@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
+
+from homeassistant.helpers.entity import generate_entity_id
 
 from .const import DOMAIN
 from .coordinator import MontaDataUpdateCoordinator
@@ -63,4 +64,6 @@ class MontaBinarySensor(MontaEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary_sensor is on."""
-        return self.coordinator.data[self.charge_point_id].get(self.entity_description.key, False)
+        return self.coordinator.data[self.charge_point_id].get(
+            self.entity_description.key, False
+        )
