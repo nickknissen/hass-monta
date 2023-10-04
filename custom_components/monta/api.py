@@ -23,14 +23,14 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 PRIVATE_INFORMATION = [
-    'accessToken',
-    'refreshToken',
-    'serialNumber',
-    'latitude',
-    'longitude',
-    'address1',
-    'address2',
-    'address3'
+    "accessToken",
+    "refreshToken",
+    "serialNumber",
+    "latitude",
+    "longitude",
+    "address1",
+    "address2",
+    "address3",
 ]
 
 
@@ -201,13 +201,14 @@ class MontaApiClient:
                 if isinstance(value, dict | list):
                     filtered_data[key] = self._filter_private_information(value)
                 else:
-                    filtered_data[key] = '*' * len(str(value)) if key in PRIVATE_INFORMATION else value
+                    filtered_data[key] = (
+                        "*" * len(str(value)) if key in PRIVATE_INFORMATION else value
+                    )
             return filtered_data
         elif isinstance(data, list):  # Recursively filter nested lists
             return [self._filter_private_information(item) for item in data]
         else:
             return data
-
 
     async def _api_wrapper(
         self,
@@ -235,8 +236,8 @@ class MontaApiClient:
                     json=data,
                 )
 
-                _LOGGER.debug("Response header: %s", response.headers)
-                _LOGGER.debug("Response status: %s", response.status)
+                _LOGGER.debug("[%s] Response header: %s", path, response.headers)
+                _LOGGER.debug("[%s] Response status: %s", path, response.status)
 
                 if response.status in (401, 403):
                     raise MontaApiClientAuthenticationError(
@@ -246,8 +247,9 @@ class MontaApiClient:
                 response_json = await response.json()
 
                 _LOGGER.debug(
-                    "response body : %s",
-                    self._filter_private_information(response_json)
+                    "[%s] Response body : %s",
+                    path,
+                    self._filter_private_information(response_json),
                 )
 
                 return response_json
@@ -306,7 +308,9 @@ class MontaApiClient:
 
         expire_time = self._prefs[STORAGE_ACCESS_EXPIRE_TIME]
         if isinstance(expire_time, str):
-            expire_time = dt_util.parse_datetime(self._prefs[STORAGE_ACCESS_EXPIRE_TIME])
+            expire_time = dt_util.parse_datetime(
+                self._prefs[STORAGE_ACCESS_EXPIRE_TIME]
+            )
 
         preemptive_expire_time = expire_time - timedelta(
             seconds=PREEMPTIVE_REFRESH_TTL_IN_SECONDS
@@ -324,7 +328,9 @@ class MontaApiClient:
 
         expire_time = self._prefs[STORAGE_REFRESH_EXPIRE_TIME]
         if isinstance(expire_time, str):
-            expire_time = dt_util.parse_datetime(self._prefs[STORAGE_REFRESH_EXPIRE_TIME])
+            expire_time = dt_util.parse_datetime(
+                self._prefs[STORAGE_REFRESH_EXPIRE_TIME]
+            )
 
         preemptive_expire_time = expire_time - timedelta(
             seconds=PREEMPTIVE_REFRESH_TTL_IN_SECONDS
