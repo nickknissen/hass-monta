@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.components.sensor import (
+    ENTITY_ID_FORMAT,
     SensorEntity,
     SensorEntityDescription,
     SensorDeviceClass,
@@ -67,13 +68,15 @@ async def async_setup_entry(
 
     for charge_point_id, _ in coordinator.data.items():
         async_add_entities(
-            MontaSensor(
-                coordinator,
-                entry,
-                description,
-                charge_point_id,
-            )
-            for description in ENTITY_DESCRIPTIONS
+            [
+                MontaSensor(
+                    coordinator,
+                    entry,
+                    description,
+                    charge_point_id,
+                )
+                for description in ENTITY_DESCRIPTIONS
+            ]
         )
 
 
@@ -91,11 +94,11 @@ class MontaSensor(MontaEntity, SensorEntity):
         super().__init__(coordinator, charge_point_id)
 
         self.entity_description = entity_description
-        self.entity_id = generate_entity_id(
-            "sensor.{}", snake_case(entity_description.key), [charge_point_id]
+        self._attr_unique_id = generate_entity_id(
+            ENTITY_ID_FORMAT,
+            f"{charge_point_id}_{snake_case(entity_description.key)}",
+            [charge_point_id],
         )
-        self._attr_name = entity_description.name
-        self._attr_unique_id = snake_case(entity_description.key)
 
     @property
     def native_value(self) -> str:

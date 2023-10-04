@@ -2,7 +2,11 @@
 from __future__ import annotations
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
+from homeassistant.components.switch import (
+    ENTITY_ID_FORMAT,
+    SwitchEntity,
+    SwitchEntityDescription,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
@@ -28,12 +32,14 @@ async def async_setup_entry(
 
     for charge_point_id, _ in coordinator.data.items():
         async_add_devices(
-            MontaSwitch(
-                coordinator,
-                description,
-                charge_point_id,
-            )
-            for description in ENTITY_DESCRIPTIONS
+            [
+                MontaSwitch(
+                    coordinator,
+                    description,
+                    charge_point_id,
+                )
+                for description in ENTITY_DESCRIPTIONS
+            ]
         )
 
 
@@ -49,11 +55,11 @@ class MontaSwitch(MontaEntity, SwitchEntity):
         """Initialize the switch class."""
         super().__init__(coordinator, charge_point_id)
         self.entity_description = entity_description
-        self.entity_id = generate_entity_id(
-            "switch.{}", snake_case(entity_description.key), [charge_point_id]
+        self._attr_unique_id = generate_entity_id(
+            ENTITY_ID_FORMAT,
+            f"{charge_point_id}_{snake_case(entity_description.key)}",
+            [charge_point_id],
         )
-        self._attr_name = entity_description.name
-        self._attr_unique_id = snake_case(entity_description.key)
 
     @property
     def available(self) -> bool:

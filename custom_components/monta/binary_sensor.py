@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.binary_sensor import (
+    ENTITY_ID_FORMAT,
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
@@ -33,12 +34,14 @@ async def async_setup_entry(hass, entry, async_add_devices):
 
     for charge_point_id, _ in coordinator.data.items():
         async_add_devices(
-            MontaBinarySensor(
-                coordinator=coordinator,
-                entity_description=entity_description,
-                charge_point_id=charge_point_id,
-            )
-            for entity_description in ENTITY_DESCRIPTIONS
+            [
+                MontaBinarySensor(
+                    coordinator=coordinator,
+                    entity_description=entity_description,
+                    charge_point_id=charge_point_id,
+                )
+                for entity_description in ENTITY_DESCRIPTIONS
+            ]
         )
 
 
@@ -55,11 +58,11 @@ class MontaBinarySensor(MontaEntity, BinarySensorEntity):
         super().__init__(coordinator, charge_point_id)
 
         self.entity_description = entity_description
-        self.entity_id = generate_entity_id(
-            "binary_sensor.{}", snake_case(entity_description.key), [charge_point_id]
+        self._attr_unique_id = generate_entity_id(
+            ENTITY_ID_FORMAT,
+            f"{charge_point_id}_{snake_case(entity_description.key)}",
+            [charge_point_id],
         )
-        self._attr_name = entity_description.name
-        self._attr_unique_id = snake_case(entity_description.key)
 
     @property
     def is_on(self) -> bool:
