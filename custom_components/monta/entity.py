@@ -12,6 +12,7 @@ class MontaEntity(CoordinatorEntity[MontaDataUpdateCoordinator]):
     """MontaEntity class."""
 
     _attr_attribution = ATTRIBUTION
+    _attr_has_entity_name = True
 
     def __init__(
         self, coordinator: MontaDataUpdateCoordinator, charge_point_id: int
