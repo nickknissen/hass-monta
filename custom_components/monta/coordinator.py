@@ -5,17 +5,10 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import (
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import (
-    MontaApiClient,
-    MontaApiClientAuthenticationError,
-    MontaApiClientError,
-)
+from .api import MontaApiClient, MontaApiClientAuthenticationError, MontaApiClientError
 from .const import DOMAIN, LOGGER
 
 
@@ -38,7 +31,12 @@ class MontaDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         """Update data via library."""
         try:
-            return await self.client.async_get_charge_points()
+            chargepoints = await self.client.async_get_charge_points()
+            for charge_point_id, _ in chargepoints.items():
+                chargepoints[charge_point_id][
+                    "charges"
+                ] = await self.client.async_get_charges(charge_point_id)
+            return chargepoints
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except MontaApiClientError as exception:
