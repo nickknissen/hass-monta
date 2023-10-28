@@ -106,7 +106,7 @@ ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         extra_state_attributes_fn=None,
     ),
     MontaSensorEntityDescription(
-        key="charge_startedAt",
+        key="charge_state",
         name="Last Charge",
         icon="mdi:ev-station",
         value_fn=last_charge_state,
