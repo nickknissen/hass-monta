@@ -1,7 +1,6 @@
 """Sensor platform for monta."""
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -23,9 +22,6 @@ from .const import DOMAIN, ChargerStatus
 from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
-
-_LOGGER = logging.getLogger(__name__)
-
 
 @dataclass
 class MontaSensorEntityDescriptionMixin:
@@ -49,16 +45,23 @@ def last_charge_state(data: dict[str, Any]) -> str:
 
 def last_charge_extra_attributes(data: dict[str, Any]) -> dict[str, Any]:
     """Process extra attributes for last charge (if available)."""
-    if len(data["charges"]) > 0:
+    if data["charges"]:
         attributes = data["charges"][0]
-        attributes["createdAt"] = _parse_date(attributes["createdAt"])
-        attributes["updatedAt"] = _parse_date(attributes["updatedAt"])
-        attributes["startedAt"] = _parse_date(attributes["startedAt"])
-        attributes["stoppedAt"] = _parse_date(attributes["stoppedAt"])
-        attributes["cablePluggedInAt"] = _parse_date(attributes["cablePluggedInAt"])
-        attributes["fullyChargedAt"] = _parse_date(attributes["fullyChargedAt"])
-        attributes["failedAt"] = _parse_date(attributes["failedAt"])
-        attributes["timeoutAt"] = _parse_date(attributes["timeoutAt"])
+        date_keys = [
+            "createdAt",
+            "updatedAt",
+            "startedAt",
+            "stoppedAt",
+            "cablePluggedInAt",
+            "fullyChargedAt",
+            "failedAt",
+            "timeoutAt",
+        ]
+
+        for key in date_keys:
+            if key in attributes:
+                attributes[key] = _parse_date(attributes[key])
+
         return attributes
 
     return None
