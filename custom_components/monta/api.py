@@ -262,6 +262,8 @@ class MontaApiClient:
             raise MontaApiClientCommunicationError(
                 "Error fetching information",
             ) from exception
+        except MontaApiClientAuthenticationError:
+            raise
         except Exception as exception:  # pylint: disable=broad-except
             raise MontaApiClientError("Something really wrong happened!") from exception
 
