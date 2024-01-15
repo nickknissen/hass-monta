@@ -6,3 +6,7 @@ logger:
   default: info
   logs:
     custom_components.monta: debug
+
+debugpy:
+  start: true
+  wait: false
