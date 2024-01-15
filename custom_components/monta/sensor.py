@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from dateutil import parser
+from datetime import datetime
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
     SensorDeviceClass,
@@ -22,6 +23,7 @@ from .const import DOMAIN, ChargerStatus
 from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
+
 
 @dataclass
 class MontaSensorEntityDescriptionMixin:
@@ -67,8 +69,13 @@ def last_charge_extra_attributes(data: dict[str, Any]) -> dict[str, Any]:
     return None
 
 
-def _parse_date(chargedate) -> str:
-    return parser.parse(chargedate) if chargedate else None
+def _parse_date(chargedate: str):
+    if isinstance(chargedate, str):
+        return parser.parse(chargedate)
+    elif isinstance(chargedate, datetime):
+        return chargedate
+    else:
+        return None
 
 
 ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
