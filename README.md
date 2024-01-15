@@ -16,6 +16,7 @@ Platform | Description
 `binary_sensor` | Show something `True` or `False`.
 `sensor` | Show info from Monta API.
 `switch` | Switch something `True` or `False`.
+`services` | `start_charging` and `stop_charging``
 
 ## Installation
 
@@ -28,6 +29,10 @@ Platform | Description
 1. In the HA UI go to "Configuration" -> "Integrations", click "+", and search for "Monta"
 
 ## Configuration is done in the UI
+👉 Monta Public API is in BETA currently.
+In order to obtain client id/Client secret to it, you might have to opt-in to their Beta program. This can be done in your user account settings in the app or in Monta's CPMS.
+
+Client id and secret are obtained from https://portal2.monta.app/applications.
 
 <!---->
 
