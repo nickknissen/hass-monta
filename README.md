@@ -20,6 +20,22 @@ Platform | Description
 
 ## Installation
 
+
+### HACS installation (recommended)  
+
+1. Go to HACS in Home Assistant
+2. Click on integrations
+3. In top right corner, click three dots, click 'Custom repositories'
+4. Paste this repository URL (https://github.com/nickknissen/hass-monta/) in repository box
+5. Choose integration in category box
+6. Click add, wait while repository is added, close window
+7. Click the new repository, and click download
+8. Restart Home Assistant
+9. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Monta"
+
+
+
+### Manual installation
 1. Using your tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 1. If you do not have a `custom_components` directory (folder) there, you need to create it.
 1. In the `custom_components` directory (folder) create a new folder called `monta`.
