@@ -27,13 +27,17 @@ PLATFORMS: list[Platform] = [
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
+
+    store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+    await store.async_remove()
+
     hass.data[DOMAIN][entry.entry_id] = coordinator = MontaDataUpdateCoordinator(
         hass=hass,
         client=MontaApiClient(
             client_id=entry.data[CONF_CLIENT_ID],
             client_secret=entry.data[CONF_CLIENT_SECRET],
             session=async_get_clientsession(hass),
-            store=Store(hass, STORAGE_VERSION, STORAGE_KEY),
+            store=store,
         ),
     )
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
