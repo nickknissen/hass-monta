@@ -114,7 +114,7 @@ class MontaApiClient:
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        return {item["id"]: item for item in response["data"]}
+        return {item["id"]: item for item in response["data"] if item.get("serialNumber") is not None}
 
     async def async_get_charges(self, charge_point_id: int) -> any:
         """Retrieve a list of charge."""
