@@ -1,15 +1,25 @@
 start_charging:
-  description: "Start charging"
+  name: Start charging
+  description: >-
+    Start charging. Select either charger device or
+    specify the charge_point_id directly
   fields:
     charge_point_id:
-      required: true
       description: "The charger point id"
-      example: 1234
+      required: true
+      selector:
+        device:
+          integration: monta
 
 stop_charging:
-  description: "Stop charging"
+  name: Stop charging
+  description: >-
+    Stop the active charging. Select either charger device
+    or specify the charge_point_id directly
   fields:
     charge_point_id:
-      required: true
       description: "The charger point id"
-      example: 1234
+      required: true
+      selector:
+        device:
+          integration: monta
