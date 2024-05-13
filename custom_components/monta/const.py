@@ -1,6 +1,6 @@
 """Constants for monta."""
+import enum
 from logging import Logger, getLogger
-from homeassistant.backports.enum import StrEnum
 
 LOGGER: Logger = getLogger(__package__)
 
@@ -18,7 +18,7 @@ STORAGE_REFRESH_TOKEN = "refresh_token"
 STORAGE_REFRESH_EXPIRE_TIME = "refresh_expire_time"
 
 
-class ChargerStatus(StrEnum):
+class ChargerStatus(enum.StrEnum):
     """Charger Status Description."""
 
     AVAILABLE = "available"
