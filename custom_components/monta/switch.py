@@ -31,7 +31,7 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    for charge_point_id in coordinator.data[ATTR_CHARGEPOINTS].keys():
+    for charge_point_id in coordinator.data[ATTR_CHARGEPOINTS]:
         async_add_devices(
             [
                 MontaSwitch(

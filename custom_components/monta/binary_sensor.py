@@ -32,7 +32,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the binary_sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    for charge_point_id in coordinator.data[ATTR_CHARGEPOINTS].keys():
+    for charge_point_id in coordinator.data[ATTR_CHARGEPOINTS]:
         async_add_devices(
             [
                 MontaBinarySensor(

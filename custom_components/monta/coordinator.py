@@ -33,7 +33,7 @@ class MontaDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         try:
             chargepoints = await self.client.async_get_charge_points()
-            for charge_point_id in chargepoints.keys():
+            for charge_point_id in chargepoints:
                 chargepoints[charge_point_id][
                     "charges"
                 ] = await self.client.async_get_charges(charge_point_id)
