@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, DOMAIN
+from .const import ATTR_CHARGEPOINTS, ATTRIBUTION, DOMAIN
 from .coordinator import MontaDataUpdateCoordinator
 
 
@@ -25,6 +25,7 @@ class MontaEntity(CoordinatorEntity[MontaDataUpdateCoordinator]):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information about this Wallbox device."""
+        chargepoint = self.coordinator.data[ATTR_CHARGEPOINTS][self.charge_point_id]
         return DeviceInfo(
             identifiers={
                 (
@@ -32,8 +33,8 @@ class MontaEntity(CoordinatorEntity[MontaDataUpdateCoordinator]):
                     self.charge_point_id,
                 )
             },
-            name=f"Monta - {self.coordinator.data[self.charge_point_id]['name']}",
-            manufacturer=self.coordinator.data[self.charge_point_id]["brandName"],
-            model=self.coordinator.data[self.charge_point_id]["modelName"],
-            sw_version=self.coordinator.data[self.charge_point_id]["firmwareVersion"],
+            name=f"Monta - {chargepoint['name']}",
+            manufacturer=chargepoint["brandName"],
+            model=chargepoint["modelName"],
+            sw_version=chargepoint["firmwareVersion"],
         )

@@ -18,6 +18,7 @@ from .const import (
     STORAGE_ACCESS_TOKEN,
     STORAGE_REFRESH_EXPIRE_TIME,
     STORAGE_REFRESH_TOKEN,
+    WALLET_TIMEDELTA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -131,7 +132,7 @@ class MontaApiClient:
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        return sorted(response["data"], key=lambda charge: -charge["id"])
+        return sorted(response["data"], reverse=True, key=lambda charge: -charge["id"])
 
     async def async_start_charge(self, charge_point_id: int) -> any:
         """Start a charge."""
@@ -165,6 +166,20 @@ class MontaApiClient:
         _LOGGER.debug("Stopped charge for chargeId: %s <%s>", charge_id, response)
 
         return response
+
+    async def async_get_wallet_transactions(self) -> any:
+        """Retrieve a list of charge."""
+
+        access_token = await self.async_get_access_token()
+
+        trantime = (dt_util.utcnow() - WALLET_TIMEDELTA).strftime("%Y-%m-%dT%H:%M:%SZ")
+        response = await self._api_wrapper(
+            method="get",
+            path=f"wallet-transactions?fromDate={trantime}",
+            headers={"authorization": f"Bearer {access_token}"},
+        )
+
+        return sorted(response["data"], key=lambda charge: -charge["id"])
 
     async def async_get_access_token(self) -> str:
         """Get access token."""

@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, ChargerStatus
+from .const import ATTR_CHARGEPOINTS, DOMAIN, ChargerStatus
 from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
@@ -31,7 +31,7 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    for charge_point_id, _ in coordinator.data.items():
+    for charge_point_id in coordinator.data[ATTR_CHARGEPOINTS].keys():
         async_add_devices(
             [
                 MontaSwitch(
@@ -65,7 +65,9 @@ class MontaSwitch(MontaEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return the availability of the switch."""
-        return self.coordinator.data[self.charge_point_id]["state"] not in {
+        return self.coordinator.data[ATTR_CHARGEPOINTS][self.charge_point_id][
+            "state"
+        ] not in {
             ChargerStatus.DISCONNECTED,
             ChargerStatus.ERROR,
         }
@@ -73,7 +75,9 @@ class MontaSwitch(MontaEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return the status of pause/resume."""
-        return self.coordinator.data[self.charge_point_id]["state"] in {
+        return self.coordinator.data[ATTR_CHARGEPOINTS][self.charge_point_id][
+            "state"
+        ] in {
             ChargerStatus.BUSY_CHARGING,
             ChargerStatus.BUSY,
             ChargerStatus.BUSY_SCHEDULED,
