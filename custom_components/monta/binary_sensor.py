@@ -1,4 +1,5 @@
 """Binary sensor platform for monta."""
+
 from __future__ import annotations
 
 import logging
@@ -9,7 +10,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-
 from homeassistant.helpers.entity import generate_entity_id
 
 from .const import DOMAIN

@@ -1,4 +1,5 @@
 """Constants for monta."""
+
 import enum
 from logging import Logger, getLogger
 

@@ -1,7 +1,7 @@
 """Switch platform for monta."""
+
 from __future__ import annotations
 
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.switch import (
     ENTITY_ID_FORMAT,
     SwitchEntity,
@@ -10,6 +10,7 @@ from homeassistant.components.switch import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, ChargerStatus
 from .coordinator import MontaDataUpdateCoordinator

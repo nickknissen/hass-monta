@@ -1,23 +1,23 @@
 """API module for monta."""
+
 from __future__ import annotations
 
 import asyncio
-import socket
 import logging
+import socket
 from datetime import timedelta
 
 import aiohttp
 import async_timeout
-
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
-    STORAGE_ACCESS_TOKEN,
-    STORAGE_ACCESS_EXPIRE_TIME,
-    STORAGE_REFRESH_TOKEN,
-    STORAGE_REFRESH_EXPIRE_TIME,
     PREEMPTIVE_REFRESH_TTL_IN_SECONDS,
+    STORAGE_ACCESS_EXPIRE_TIME,
+    STORAGE_ACCESS_TOKEN,
+    STORAGE_REFRESH_EXPIRE_TIME,
+    STORAGE_REFRESH_TOKEN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -114,7 +114,11 @@ class MontaApiClient:
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        return {item["id"]: item for item in response["data"] if item.get("serialNumber") is not None}
+        return {
+            item["id"]: item
+            for item in response["data"]
+            if item.get("serialNumber") is not None
+        }
 
     async def async_get_charges(self, charge_point_id: int) -> any:
         """Retrieve a list of charge."""
