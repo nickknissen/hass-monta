@@ -1,7 +1,6 @@
 """Constants for monta."""
 
 import enum
-from datetime import timedelta
 from logging import Logger, getLogger
 
 LOGGER: Logger = getLogger(__package__)
@@ -21,8 +20,6 @@ STORAGE_ACCESS_EXPIRE_TIME = "access_expire_time"
 STORAGE_ACCESS_TOKEN = "access_token"
 STORAGE_REFRESH_TOKEN = "refresh_token"
 STORAGE_REFRESH_EXPIRE_TIME = "refresh_expire_time"
-
-WALLET_TIMEDELTA = timedelta(days=7)
 
 
 class ChargerStatus(enum.StrEnum):

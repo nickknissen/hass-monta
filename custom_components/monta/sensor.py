@@ -26,7 +26,6 @@ from .const import (
     ATTR_WALLET,
     ATTRIBUTION,
     DOMAIN,
-    WALLET_TIMEDELTA,
     ChargerStatus,
     WalletStatus,
 )
@@ -90,7 +89,7 @@ def last_charge_extra_attributes(data: dict[str, Any]) -> dict[str, Any]:
 
 def wallet_extra_attributes(data: list[dict[str, Any]]) -> dict[str, Any]:
     """Process extra attributes for the wallet (if available)."""
-    attributes = {"period_retrieved": _days_hours_minutes(WALLET_TIMEDELTA)}
+    attributes = {}
 
     if data:
         for transaction in data:

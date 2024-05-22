@@ -18,7 +18,6 @@ from .const import (
     STORAGE_ACCESS_TOKEN,
     STORAGE_REFRESH_EXPIRE_TIME,
     STORAGE_REFRESH_TOKEN,
-    WALLET_TIMEDELTA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -172,10 +171,9 @@ class MontaApiClient:
 
         access_token = await self.async_get_access_token()
 
-        trantime = (dt_util.utcnow() - WALLET_TIMEDELTA).strftime("%Y-%m-%dT%H:%M:%SZ")
         response = await self._api_wrapper(
             method="get",
-            path=f"wallet-transactions?fromDate={trantime}",
+            path="wallet-transactions",
             headers={"authorization": f"Bearer {access_token}"},
         )
 
