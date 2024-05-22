@@ -105,7 +105,7 @@ class MontaApiClient:
         return response_json["accessToken"]
 
     async def async_get_charge_points(self) -> any:
-        """Get availbe charge points to the user."""
+        """Get available charge points to the user."""
 
         access_token = await self.async_get_access_token()
 
@@ -168,7 +168,7 @@ class MontaApiClient:
         return response
 
     async def async_get_wallet_transactions(self) -> any:
-        """Retrieve a list of charge."""
+        """Retrieve first page of wallet transations."""
 
         access_token = await self.async_get_access_token()
 

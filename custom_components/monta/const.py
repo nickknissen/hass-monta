@@ -11,7 +11,7 @@ DOMAIN = "monta"
 VERSION = "0.0.0"
 ATTRIBUTION = "Data provided by https://docs.public-api.monta.com"
 
-ATTR_CHARGEPOINTS = "chargepoints"
+ATTR_CHARGE_POINTS = "charge_points"
 ATTR_WALLET = "wallet"
 
 PREEMPTIVE_REFRESH_TTL_IN_SECONDS = 300

@@ -22,7 +22,7 @@ from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    ATTR_CHARGEPOINTS,
+    ATTR_CHARGE_POINTS,
     ATTR_WALLET,
     ATTRIBUTION,
     DOMAIN,
@@ -34,7 +34,7 @@ from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
 
-CHARGEPOINTDATEKEYS = [
+CHARGE_POINT_DATE_KEYS = [
     "createdAt",
     "updatedAt",
     "startedAt",
@@ -44,7 +44,7 @@ CHARGEPOINTDATEKEYS = [
     "failedAt",
     "timeoutAt",
 ]
-WALLETDATEKEYS = [
+WALLET_DATE_KEYS = [
     "createdAt",
     "updatedAt",
     "completedAt",
@@ -79,7 +79,7 @@ def last_charge_extra_attributes(data: dict[str, Any]) -> dict[str, Any]:
     """Process extra attributes for last charge (if available)."""
     if data["charges"]:
         attributes = data["charges"][0]
-        for key in CHARGEPOINTDATEKEYS:
+        for key in CHARGE_POINT_DATE_KEYS:
             if key in attributes:
                 attributes[key] = _parse_date(attributes[key])
 
@@ -94,7 +94,7 @@ def wallet_extra_attributes(data: list[dict[str, Any]]) -> dict[str, Any]:
 
     if data:
         for transaction in data:
-            for key in WALLETDATEKEYS:
+            for key in WALLET_DATE_KEYS:
                 if key in transaction:
                     transaction[key] = _parse_date(transaction[key])
         attributes["transactions"] = data
@@ -112,7 +112,7 @@ def _parse_date(chargedate: str):
     return None
 
 
-CHARGEPOINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
+CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_visibility",
         name="Visibility",
@@ -175,16 +175,16 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    for charge_point_id in coordinator.data[ATTR_CHARGEPOINTS]:
+    for charge_point_id in coordinator.data[ATTR_CHARGE_POINTS]:
         async_add_entities(
             [
-                MontaChargepointSensor(
+                MontaChargePointSensor(
                     coordinator,
                     entry,
                     description,
                     charge_point_id,
                 )
-                for description in CHARGEPOINT_ENTITY_DESCRIPTIONS
+                for description in CHARGE_POINT_ENTITY_DESCRIPTIONS
             ]
         )
     async_add_entities(
@@ -199,7 +199,7 @@ async def async_setup_entry(
     )
 
 
-class MontaChargepointSensor(MontaEntity, SensorEntity):
+class MontaChargePointSensor(MontaEntity, SensorEntity):
     """monta Sensor class."""
 
     def __init__(
@@ -223,12 +223,12 @@ class MontaChargepointSensor(MontaEntity, SensorEntity):
     def native_value(self) -> StateType:
         """Return the state."""
         return self.entity_description.value_fn(
-            self.coordinator.data[ATTR_CHARGEPOINTS][self.charge_point_id]
+            self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id]
         )
 
     @property
     def extra_attributes(self) -> str:
-        """Return extra attributes for trhe sensor."""
+        """Return extra attributes for the sensor."""
         return None
 
     @property
@@ -236,7 +236,7 @@ class MontaChargepointSensor(MontaEntity, SensorEntity):
         """Return the state attributes."""
         if self.entity_description.extra_state_attributes_fn:
             return self.entity_description.extra_state_attributes_fn(
-                self.coordinator.data[ATTR_CHARGEPOINTS][self.charge_point_id]
+                self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id]
             )
         return None
 
@@ -270,7 +270,7 @@ class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEnt
 
     @property
     def extra_attributes(self) -> str:
-        """Return extra attributes for trhe sensor."""
+        """Return extra attributes for the sensor."""
         return None
 
     @property
