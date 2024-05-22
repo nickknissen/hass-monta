@@ -1,4 +1,5 @@
 """DataUpdateCoordinator for monta."""
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -9,7 +10,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import MontaApiClient, MontaApiClientAuthenticationError, MontaApiClientError
-from .const import DOMAIN, LOGGER
+from .const import ATTR_charge_points, ATTR_WALLET, DOMAIN, LOGGER
 
 
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
@@ -31,12 +32,13 @@ class MontaDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         """Update data via library."""
         try:
-            chargepoints = await self.client.async_get_charge_points()
-            for charge_point_id, _ in chargepoints.items():
-                chargepoints[charge_point_id][
+            charge_points = await self.client.async_get_charge_points()
+            for charge_point_id in charge_points:
+                charge_points[charge_point_id][
                     "charges"
                 ] = await self.client.async_get_charges(charge_point_id)
-            return chargepoints
+            wallet = await self.client.async_get_wallet_transactions()
+            return {ATTR_charge_points: charge_points, ATTR_WALLET: wallet}
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except MontaApiClientError as exception:

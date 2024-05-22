@@ -1,12 +1,13 @@
 """Sensor platform for monta."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from dateutil import parser
-from datetime import datetime
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
     SensorDeviceClass,
@@ -18,11 +19,35 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, ChargerStatus
+from .const import (
+    ATTR_CHARGE_POINTS,
+    ATTR_WALLET,
+    ATTRIBUTION,
+    DOMAIN,
+    ChargerStatus,
+    WalletStatus,
+)
 from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
+
+CHARGE_POINT_DATE_KEYS = [
+    "createdAt",
+    "updatedAt",
+    "startedAt",
+    "stoppedAt",
+    "cablePluggedInAt",
+    "fullyChargedAt",
+    "failedAt",
+    "timeoutAt",
+]
+WALLET_DATE_KEYS = [
+    "createdAt",
+    "updatedAt",
+    "completedAt",
+]
 
 
 @dataclass
@@ -40,6 +65,10 @@ class MontaSensorEntityDescription(
     """Describes MontaSensor sensor entity."""
 
 
+def _days_hours_minutes(td):
+    return f"{td.days} days, {td.seconds//3600} hours, {(td.seconds//60)%60} minutes"
+
+
 def last_charge_state(data: dict[str, Any]) -> str:
     """Process state for last charge (if available)."""
     return data["charges"][0]["state"] if len(data["charges"]) > 0 else None
@@ -49,18 +78,7 @@ def last_charge_extra_attributes(data: dict[str, Any]) -> dict[str, Any]:
     """Process extra attributes for last charge (if available)."""
     if data["charges"]:
         attributes = data["charges"][0]
-        date_keys = [
-            "createdAt",
-            "updatedAt",
-            "startedAt",
-            "stoppedAt",
-            "cablePluggedInAt",
-            "fullyChargedAt",
-            "failedAt",
-            "timeoutAt",
-        ]
-
-        for key in date_keys:
+        for key in CHARGE_POINT_DATE_KEYS:
             if key in attributes:
                 attributes[key] = _parse_date(attributes[key])
 
@@ -69,17 +87,32 @@ def last_charge_extra_attributes(data: dict[str, Any]) -> dict[str, Any]:
     return None
 
 
+def wallet_extra_attributes(data: list[dict[str, Any]]) -> dict[str, Any]:
+    """Process extra attributes for the wallet (if available)."""
+    attributes = {}
+
+    if data:
+        for transaction in data:
+            for key in WALLET_DATE_KEYS:
+                if key in transaction:
+                    transaction[key] = _parse_date(transaction[key])
+        attributes["transactions"] = data
+
+    return attributes
+
+
 def _parse_date(chargedate: str):
     if isinstance(chargedate, str):
         return parser.parse(chargedate)
-    elif isinstance(chargedate, datetime):
+
+    if isinstance(chargedate, datetime):
         return chargedate
-    else:
-        return None
+
+    return None
 
 
-ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
-    MontaSensorEntityDescription(
+CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_visibility",
         name="Visibility",
         icon="mdi:eye",
@@ -88,7 +121,7 @@ ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         value_fn=lambda data: data["visibility"],
         extra_state_attributes_fn=None,
     ),
-    MontaSensorEntityDescription(
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_type",
         name="Type",
         icon="mdi:current-ac",
@@ -97,7 +130,7 @@ ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         value_fn=lambda data: data["type"],
         extra_state_attributes_fn=None,
     ),
-    MontaSensorEntityDescription(
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_state",
         name="State",
         icon="mdi:state-machine",
@@ -106,21 +139,31 @@ ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         value_fn=lambda data: data["state"],
         extra_state_attributes_fn=None,
     ),
-    MontaSensorEntityDescription(
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_lastMeterReadingKwh",
         name="Last meter reading",
-        icon="mdi:counter",
-        device_class=SensorDeviceClass.ENERGY,
-        native_unit_of_measurement="kWh",
+        icon="mdi:wallet",
         value_fn=lambda data: data["lastMeterReadingKwh"],
         extra_state_attributes_fn=None,
     ),
-    MontaSensorEntityDescription(
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charge_state",
         name="Last Charge",
         icon="mdi:ev-station",
         value_fn=last_charge_state,
         extra_state_attributes_fn=last_charge_extra_attributes,
+    ),
+)
+
+WALLET_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
+        key="monta-personal-wallet",
+        name="Monta - Personal Wallet",
+        icon="mdi:eye",
+        device_class=SensorDeviceClass.ENUM,
+        options=[x.value for x in WalletStatus],
+        value_fn=lambda data: data[0]["state"] if data else "none",
+        extra_state_attributes_fn=wallet_extra_attributes,
     ),
 )
 
@@ -131,21 +174,31 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    for charge_point_id, _ in coordinator.data.items():
+    for charge_point_id in coordinator.data[ATTR_CHARGE_POINTS]:
         async_add_entities(
             [
-                MontaSensor(
+                MontaChargePointSensor(
                     coordinator,
                     entry,
                     description,
                     charge_point_id,
                 )
-                for description in ENTITY_DESCRIPTIONS
+                for description in CHARGE_POINT_ENTITY_DESCRIPTIONS
             ]
         )
+    async_add_entities(
+        [
+            MontaWalletSensor(
+                coordinator,
+                entry,
+                description,
+            )
+            for description in WALLET_ENTITY_DESCRIPTIONS
+        ]
+    )
 
 
-class MontaSensor(MontaEntity, SensorEntity):
+class MontaChargePointSensor(MontaEntity, SensorEntity):
     """monta Sensor class."""
 
     def __init__(
@@ -169,12 +222,12 @@ class MontaSensor(MontaEntity, SensorEntity):
     def native_value(self) -> StateType:
         """Return the state."""
         return self.entity_description.value_fn(
-            self.coordinator.data[self.charge_point_id]
+            self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id]
         )
 
     @property
     def extra_attributes(self) -> str:
-        """Return extra attributes for trhe sensor."""
+        """Return extra attributes for the sensor."""
         return None
 
     @property
@@ -182,6 +235,48 @@ class MontaSensor(MontaEntity, SensorEntity):
         """Return the state attributes."""
         if self.entity_description.extra_state_attributes_fn:
             return self.entity_description.extra_state_attributes_fn(
-                self.coordinator.data[self.charge_point_id]
+                self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id]
+            )
+        return None
+
+
+class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEntity):
+    """monta Sensor class."""
+
+    _attr_attribution = ATTRIBUTION
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: MontaDataUpdateCoordinator,
+        _: ConfigEntry,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+
+        self.entity_description = entity_description
+        self._attr_unique_id = generate_entity_id(
+            ENTITY_ID_FORMAT,
+            f"monta_{snake_case(entity_description.key)}",
+            "personal_monta_wallet",
+        )
+
+    @property
+    def native_value(self) -> StateType:
+        """Return the state."""
+        return self.entity_description.value_fn(self.coordinator.data[ATTR_WALLET])
+
+    @property
+    def extra_attributes(self) -> str:
+        """Return extra attributes for the sensor."""
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str] | None:
+        """Return the state attributes."""
+        if self.entity_description.extra_state_attributes_fn:
+            return self.entity_description.extra_state_attributes_fn(
+                self.coordinator.data[ATTR_WALLET]
             )
         return None

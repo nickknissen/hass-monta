@@ -1,23 +1,23 @@
 """API module for monta."""
+
 from __future__ import annotations
 
 import asyncio
-import socket
 import logging
+import socket
 from datetime import timedelta
 
 import aiohttp
 import async_timeout
-
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
-    STORAGE_ACCESS_TOKEN,
-    STORAGE_ACCESS_EXPIRE_TIME,
-    STORAGE_REFRESH_TOKEN,
-    STORAGE_REFRESH_EXPIRE_TIME,
     PREEMPTIVE_REFRESH_TTL_IN_SECONDS,
+    STORAGE_ACCESS_EXPIRE_TIME,
+    STORAGE_ACCESS_TOKEN,
+    STORAGE_REFRESH_EXPIRE_TIME,
+    STORAGE_REFRESH_TOKEN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ class MontaApiClient:
         return response_json["accessToken"]
 
     async def async_get_charge_points(self) -> any:
-        """Get availbe charge points to the user."""
+        """Get available charge points to the user."""
 
         access_token = await self.async_get_access_token()
 
@@ -114,7 +114,11 @@ class MontaApiClient:
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        return {item["id"]: item for item in response["data"] if item.get("serialNumber") is not None}
+        return {
+            item["id"]: item
+            for item in response["data"]
+            if item.get("serialNumber") is not None
+        }
 
     async def async_get_charges(self, charge_point_id: int) -> any:
         """Retrieve a list of charge."""
@@ -161,6 +165,19 @@ class MontaApiClient:
         _LOGGER.debug("Stopped charge for chargeId: %s <%s>", charge_id, response)
 
         return response
+
+    async def async_get_wallet_transactions(self) -> any:
+        """Retrieve first page of wallet transactions."""
+
+        access_token = await self.async_get_access_token()
+
+        response = await self._api_wrapper(
+            method="get",
+            path="wallet-transactions",
+            headers={"authorization": f"Bearer {access_token}"},
+        )
+
+        return sorted(response["data"], key=lambda transaction: -transaction["id"])
 
     async def async_get_access_token(self) -> str:
         """Get access token."""

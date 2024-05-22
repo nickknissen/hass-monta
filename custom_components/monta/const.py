@@ -1,4 +1,5 @@
 """Constants for monta."""
+
 import enum
 from logging import Logger, getLogger
 
@@ -8,6 +9,9 @@ NAME = "Monta"
 DOMAIN = "monta"
 VERSION = "0.0.0"
 ATTRIBUTION = "Data provided by https://docs.public-api.monta.com"
+
+ATTR_CHARGE_POINTS = "charge_points"
+ATTR_WALLET = "wallet"
 
 PREEMPTIVE_REFRESH_TTL_IN_SECONDS = 300
 STORAGE_KEY = "monta_auth"
@@ -33,3 +37,13 @@ class ChargerStatus(enum.StrEnum):
     DISCONNECTED = "disconnected"
     PASSIVE = "passive"
     OTHER = "other"
+
+
+class WalletStatus(enum.StrEnum):
+    """Wallet Status Description."""
+
+    COMPLETE = "complete"
+    FAILED = "failed"
+    PENDING = "pending"
+    RESERVED = "reserved"
+    NONE = "none"
