@@ -167,7 +167,7 @@ class MontaApiClient:
         return response
 
     async def async_get_wallet_transactions(self) -> any:
-        """Retrieve first page of wallet transations."""
+        """Retrieve first page of wallet transactions."""
 
         access_token = await self.async_get_access_token()
 
