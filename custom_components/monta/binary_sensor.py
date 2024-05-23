@@ -12,7 +12,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.helpers.entity import generate_entity_id
 
-from .const import ATTR_CHARGEPOINTS, DOMAIN
+from .const import ATTR_CHARGE_POINTS, DOMAIN
 from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
@@ -32,7 +32,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the binary_sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    for charge_point_id in coordinator.data[ATTR_CHARGEPOINTS]:
+    for charge_point_id in coordinator.data[ATTR_CHARGE_POINTS]:
         async_add_devices(
             [
                 MontaBinarySensor(
@@ -67,6 +67,6 @@ class MontaBinarySensor(MontaEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary_sensor is on."""
-        return self.coordinator.data[ATTR_CHARGEPOINTS][self.charge_point_id].get(
+        return self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id].get(
             self.entity_description.key, False
         )
