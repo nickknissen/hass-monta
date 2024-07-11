@@ -15,6 +15,9 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    UnitOfEnergy,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -143,6 +146,8 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         key="charger_lastMeterReadingKwh",
         name="Last meter reading",
         icon="mdi:wallet",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         value_fn=lambda data: data["lastMeterReadingKwh"],
         extra_state_attributes_fn=None,
     ),
