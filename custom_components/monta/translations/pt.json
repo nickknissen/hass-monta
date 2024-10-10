@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "👉 A API Pública da Monta está atualmente em BETA.\nPara obter o ID do cliente/segredo do cliente, pode ser necessário aderir ao programa Beta. Isto pode ser feito nas configurações da sua conta de utilizador na aplicação ou no CPMS da Monta.\n\nO ID e o segredo do cliente são obtidos em https://portal2.monta.app/applications.",
+        "data": {
+          "client_id": "ID do cliente",
+          "client_secret": "Segredo do cliente"
+        }
+      }
+    },
+    "error": {
+      "auth": "ID do cliente/segredo do cliente está incorreto.",
+      "connection": "Não foi possível ligar ao servidor.",
+      "unknown": "Ocorreu um erro desconhecido."
+    }
+  },
+  "services": {
+    "start_charging": {
+      "description": "Iniciar carregamento no carregador selecionado",
+      "name": "Iniciar carregamento",
+      "fields": {
+        "charge_point_id": {
+          "name": "ID do ponto de carregamento",
+          "description": "O ID do carregador."
+        }
+      }
+    },
+    "stop_charging": {
+      "description": "Parar o carregamento no carregador selecionado.",
+      "name": "Parar carregamento",
+      "fields": {
+        "charge_point_id": {
+          "name": "ID do ponto de carregamento",
+          "description": "O ID do carregador."
+        }
+      }
+    }
+  }
+}
