@@ -131,7 +131,13 @@ class MontaApiClient:
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        return sorted(response["data"], key=lambda charge: -charge["id"])
+        charges = response.get("data")
+
+        if charges is None:
+            _LOGGER.warning("No charges found in response!")
+            charges = []
+        
+        return sorted(charges, key=lambda charge: -charge["id"])
 
     async def async_start_charge(self, charge_point_id: int) -> any:
         """Start a charge."""
@@ -177,7 +183,13 @@ class MontaApiClient:
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        return sorted(response["data"], key=lambda transaction: -transaction["id"])
+        transactions = response.get("data")
+
+        if transactions is None:
+            _LOGGER.warning("No transactions found in response!")
+            transactions = []
+
+        return sorted(transactions, key=lambda transaction: -transaction["id"])
 
     async def async_get_access_token(self) -> str:
         """Get access token."""
