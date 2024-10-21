@@ -136,7 +136,7 @@ class MontaApiClient:
         if charges is None:
             _LOGGER.warning("No charges found in response!")
             charges = []
-        
+
         return sorted(charges, key=lambda charge: -charge["id"])
 
     async def async_start_charge(self, charge_point_id: int) -> any:
