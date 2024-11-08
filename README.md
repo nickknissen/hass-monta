@@ -23,7 +23,11 @@ Platform | Description
 
 ### HACS installation (recommended)  
 
+1. Download the integration via HACS
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=nickknissen&repository=hass-monta&category=integration)
+2. Click download
+3. Restart Home Assistant
+4. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Monta"
 
 ### HACS installation (custom repository)
 1. Go to HACS in Home Assistant
