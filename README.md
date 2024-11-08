@@ -23,6 +23,9 @@ Platform | Description
 
 ### HACS installation (recommended)  
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=nickknissen&repository=hass-monta&category=integration)
+
+### HACS installation (custom repository)
 1. Go to HACS in Home Assistant
 2. Click on integrations
 3. In top right corner, click three dots, click 'Custom repositories'
