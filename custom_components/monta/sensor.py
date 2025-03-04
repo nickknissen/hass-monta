@@ -13,6 +13,7 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
+    SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -30,7 +31,6 @@ from .const import (
     ATTRIBUTION,
     DOMAIN,
     ChargerStatus,
-    WalletStatus,
 )
 from .coordinator import MontaDataUpdateCoordinator
 from .entity import MontaEntity
@@ -152,6 +152,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         icon="mdi:wallet",
         device_class=SensorDeviceClass.ENERGY,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
         value_fn=lambda data: data["lastMeterReadingKwh"],
         extra_state_attributes_fn=None,
     ),
