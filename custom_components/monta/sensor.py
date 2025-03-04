@@ -68,10 +68,6 @@ class MontaSensorEntityDescription(
     """Describes MontaSensor sensor entity."""
 
 
-def _days_hours_minutes(td):
-    return f"{td.days} days, {td.seconds//3600} hours, {(td.seconds//60)%60} minutes"
-
-
 def last_charge_state(data: dict[str, Any]) -> str:
     """Process state for last charge (if available)."""
     return data["charges"][0]["state"] if len(data["charges"]) > 0 else None
@@ -86,6 +82,14 @@ def last_charge_extra_attributes(data: dict[str, Any]) -> dict[str, Any]:
                 attributes[key] = _parse_date(attributes[key])
 
         return attributes
+
+    return None
+
+
+def wallet_credit_extra_attribute(data: dict[str, Any]) -> dict[str, Any]:
+    """Process extra attributes for last charge (if available)."""
+    if data["balance"]:
+        return {"credit": data["balance"]["credit"]}
 
     return None
 
@@ -162,13 +166,14 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
 
 WALLET_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
-        key="monta-personal-wallet",
+        key="monta-wallet-amount",
         name="Monta - Personal Wallet",
-        icon="mdi:eye",
-        device_class=SensorDeviceClass.ENUM,
-        options=[x.value for x in WalletStatus],
-        value_fn=lambda data: data[0]["state"] if data else "none",
-        extra_state_attributes_fn=wallet_extra_attributes,
+        icon="mdi:wallet",
+        device_class=SensorDeviceClass.MONETARY,
+        value_fn=lambda data: data["balance"]["amount"]
+        if data.get("balance")
+        else None,
+        extra_state_attributes_fn=wallet_credit_extra_attribute,
     ),
 )
 
@@ -266,6 +271,17 @@ class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEnt
             f"monta_{snake_case(entity_description.key)}",
             "personal_monta_wallet",
         )
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit of measurement of the sensor."""
+        if (
+            self.entity_description.key == "monta-wallet-amount"
+            and self.coordinator.data
+        ):
+            wallet_data = self.coordinator.data.get(ATTR_WALLET, {})
+            if wallet_currency := wallet_data.get("currency"):
+                return wallet_currency.get("identifier", "").upper()
 
     @property
     def native_value(self) -> StateType:

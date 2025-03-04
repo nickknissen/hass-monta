@@ -191,6 +191,19 @@ class MontaApiClient:
 
         return sorted(transactions, key=lambda transaction: -transaction["id"])
 
+    async def async_get_personal_wallet(self) -> any:
+        """Retrieve personal wallet information."""
+
+        access_token = await self.async_get_access_token()
+
+        response = await self._api_wrapper(
+            method="get",
+            path="wallets/personal",
+            headers={"authorization": f"Bearer {access_token}"},
+        )
+
+        return response
+
     async def async_get_access_token(self) -> str:
         """Get access token."""
         async with self._get_token_lock:

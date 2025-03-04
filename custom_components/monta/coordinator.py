@@ -37,8 +37,8 @@ class MontaDataUpdateCoordinator(DataUpdateCoordinator):
                 charge_points[charge_point_id][
                     "charges"
                 ] = await self.client.async_get_charges(charge_point_id)
-            wallet = await self.client.async_get_wallet_transactions()
-            return {ATTR_CHARGE_POINTS: charge_points, ATTR_WALLET: wallet}
+            personal_wallet = await self.client.async_get_personal_wallet()
+            return {ATTR_CHARGE_POINTS: charge_points, ATTR_WALLET: personal_wallet}
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except MontaApiClientError as exception:
