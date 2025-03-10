@@ -12,6 +12,7 @@ ATTRIBUTION = "Data provided by https://docs.public-api.monta.com"
 
 ATTR_CHARGE_POINTS = "charge_points"
 ATTR_WALLET = "wallet"
+ATTR_TRANSACTIONS = "transactions"
 
 PREEMPTIVE_REFRESH_TTL_IN_SECONDS = 300
 STORAGE_KEY = "monta_auth"

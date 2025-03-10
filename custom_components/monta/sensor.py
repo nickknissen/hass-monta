@@ -27,6 +27,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     ATTR_CHARGE_POINTS,
+    ATTR_TRANSACTIONS,
     ATTR_WALLET,
     ATTRIBUTION,
     DOMAIN,
@@ -178,6 +179,16 @@ WALLET_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     ),
 )
 
+TRANSACTION_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
+        key="monta-latest-wallet-transactions",
+        name="Monta - Latest Wallet Transactions",
+        icon="mdi:wallet-outline",
+        value_fn=lambda data: data,
+        extra_state_attributes_fn=None,
+    ),
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -197,14 +208,17 @@ async def async_setup_entry(
                 for description in CHARGE_POINT_ENTITY_DESCRIPTIONS
             ]
         )
+
     async_add_entities(
         [
-            MontaWalletSensor(
-                coordinator,
-                entry,
-                description,
-            )
+            MontaWalletSensor(coordinator, entry, description)
             for description in WALLET_ENTITY_DESCRIPTIONS
+        ]
+    )
+    async_add_entities(
+        [
+            MontaTransactionsSensor(coordinator, entry, description)
+            for description in TRANSACTION_ENTITY_DESCRIPTIONS
         ]
     )
 
@@ -276,10 +290,7 @@ class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEnt
     @property
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of the sensor."""
-        if (
-            self.entity_description.key == "monta-wallet-amount"
-            and self.coordinator.data
-        ):
+        if self.coordinator.data:
             wallet_data = self.coordinator.data.get(ATTR_WALLET, {})
             if wallet_currency := wallet_data.get("currency"):
                 return wallet_currency.get("identifier", "").upper()
@@ -302,3 +313,54 @@ class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEnt
                 self.coordinator.data[ATTR_WALLET]
             )
         return None
+
+
+class MontaTransactionsSensor(
+    CoordinatorEntity[MontaDataUpdateCoordinator], SensorEntity
+):
+    """monta Sensor class."""
+
+    _attr_attribution = ATTRIBUTION
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: MontaDataUpdateCoordinator,
+        _: ConfigEntry,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+
+        self.entity_description = entity_description
+        self._attr_unique_id = generate_entity_id(
+            ENTITY_ID_FORMAT,
+            f"monta_{snake_case(entity_description.key)}",
+            "monta_latest_transactions",
+        )
+
+    @property
+    def native_value(self) -> StateType:
+        """Return the state."""
+        return self.entity_description.value_fn(
+            self.coordinator.data[ATTR_TRANSACTIONS][0]["state"]
+        )
+
+    @property
+    def extra_attributes(self) -> str:
+        """Return extra attributes for the sensor."""
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str] | None:
+        """Converts the dates to correct home assitant format."""
+        attributes = {}
+
+        if data := self.coordinator.data.get(ATTR_TRANSACTIONS, []):
+            for transaction in data:
+                for key in WALLET_DATE_KEYS:
+                    if key in transaction:
+                        transaction[key] = _parse_date(transaction[key])
+            attributes["transactions"] = data
+
+        return attributes
