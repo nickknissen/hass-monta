@@ -8,7 +8,7 @@ from homeassistant.components.switch import (
     SwitchEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -61,6 +61,13 @@ class MontaSwitch(MontaEntity, SwitchEntity):
             f"{charge_point_id}_{snake_case(entity_description.key)}",
             [charge_point_id],
         )
+        self._local_state = None
+
+    @callback
+    def _async_update_listeners(self) -> None:
+        """Reset local state when coordinator updates."""
+        self._local_state = None
+        super()._async_update_listeners()
 
     @property
     def available(self) -> bool:
@@ -75,6 +82,8 @@ class MontaSwitch(MontaEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return the status of pause/resume."""
+        if self._local_state is not None:
+            return self._local_state
         return self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id][
             "state"
         ] in {
@@ -86,7 +95,11 @@ class MontaSwitch(MontaEntity, SwitchEntity):
     async def async_turn_on(self, **_: any) -> None:
         """Start charger."""
         await self.coordinator.async_start_charge(self.charge_point_id)
+        self._local_state = True
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **_: any) -> None:
         """Stop charger."""
         await self.coordinator.async_stop_charge(self.charge_point_id)
+        self._local_state = False
+        self.async_write_ha_state()
