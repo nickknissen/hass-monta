@@ -342,8 +342,11 @@ class MontaTransactionsSensor(
     @property
     def native_value(self) -> StateType:
         """Return the state."""
+        transactions = self.coordinator.data.get(ATTR_TRANSACTIONS, [])
+        if not transactions:
+            return None
         return self.entity_description.value_fn(
-            self.coordinator.data[ATTR_TRANSACTIONS][0]["state"]
+            transactions[0]["state"]
         )
 
     @property
