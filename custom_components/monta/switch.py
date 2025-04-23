@@ -64,10 +64,10 @@ class MontaSwitch(MontaEntity, SwitchEntity):
         self._local_state = None
 
     @callback
-    def _async_update_listeners(self) -> None:
+    def _handle_coordinator_update(self) -> None:
         """Reset local state when coordinator updates."""
         self._local_state = None
-        super()._async_update_listeners()
+        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
