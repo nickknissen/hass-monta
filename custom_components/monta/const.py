@@ -22,6 +22,20 @@ STORAGE_ACCESS_TOKEN = "access_token"
 STORAGE_REFRESH_TOKEN = "refresh_token"
 STORAGE_REFRESH_EXPIRE_TIME = "refresh_expire_time"
 
+# Polling and rate-limit related defaults
+# Base update cadence for latency-sensitive data (charges)
+BASE_UPDATE_INTERVAL_SECONDS = 30
+# Maximum backoff interval when rate-limited
+MAX_UPDATE_INTERVAL_SECONDS = 300  # 5 minutes
+# Charge points refresh: fetched at setup; periodic long refresh
+CHARGE_POINTS_REFRESH_INTERVAL_SECONDS = 3600  # 60 minutes
+# Wallet and transactions refresh interval
+WALLET_REFRESH_INTERVAL_SECONDS = 300  # 5 minutes
+# Default fallback for how many charge points' charges to fetch per cycle
+DEFAULT_CHARGES_BATCH_SIZE = 4
+# Short retry threshold for immediate in-client retry of 429s
+SHORT_RETRY_THRESHOLD_SECONDS = 2
+
 
 class ChargerStatus(enum.StrEnum):
     """Charger Status Description."""

@@ -6,6 +6,8 @@ import asyncio
 import logging
 import socket
 from datetime import timedelta
+from datetime import datetime
+import random
 
 import aiohttp
 import async_timeout
@@ -14,6 +16,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     PREEMPTIVE_REFRESH_TTL_IN_SECONDS,
+    SHORT_RETRY_THRESHOLD_SECONDS,
     STORAGE_ACCESS_EXPIRE_TIME,
     STORAGE_ACCESS_TOKEN,
     STORAGE_REFRESH_EXPIRE_TIME,
@@ -46,6 +49,22 @@ class MontaApiClientAuthenticationError(MontaApiClientError):
     """Exception to indicate an authentication error."""
 
 
+class MontaApiClientRateLimitError(MontaApiClientError):
+    """Exception to indicate a rate limit (HTTP 429) error."""
+
+    def __init__(
+        self,
+        message: str,
+        retry_after_seconds: int | None = None,
+        reset_at: datetime | None = None,
+        remaining: int | None = None,
+    ) -> None:
+        """Initialize the rate limit error with optional retry information."""
+        super().__init__(message)
+        self.retry_after_seconds = retry_after_seconds
+        self.reset_at = reset_at
+        self.remaining = remaining
+
 class MontaApiClient:
     """Represents a Monta API client.
 
@@ -77,6 +96,8 @@ class MontaApiClient:
         self._store = store
 
         self._get_token_lock = asyncio.Lock()
+        # When rate-limited, avoid hammering until reset time
+        self._rate_limited_until: datetime | None = None
 
     async def async_request_token(self) -> any:
         """Obtain access token with clientId and secret."""
@@ -260,6 +281,20 @@ class MontaApiClient:
         headers: dict | None = None,
     ) -> any:
         """Get information from the API."""
+        # Respect in-client rate limit gate, if set
+        if self._rate_limited_until is not None:
+            now = dt_util.utcnow()
+            if now < self._rate_limited_until:
+                retry_after = int((self._rate_limited_until - now).total_seconds())
+                raise MontaApiClientRateLimitError(
+                    "Client is currently rate-limited",
+                    retry_after_seconds=max(retry_after, 1),
+                    reset_at=self._rate_limited_until,
+                )
+            else:
+                # Gate has expired, clear it
+                self._rate_limited_until = None
+
         default_headers = {
             "Content-type": "application/json; charset=UTF-8",
             "accept": "application/json",
@@ -269,45 +304,116 @@ class MontaApiClient:
 
         all_headers = {**default_headers, **(headers or {})}
 
-        try:
-            async with async_timeout.timeout(10):
-                response = await self._session.request(
-                    method=method,
-                    url=f"{base_url}{path}",
-                    headers=all_headers,
-                    json=data,
-                )
+        # Allow short, bounded retries on 429 when the server requests a very small pause
+        max_short_retries = 2
+        attempt = 0
 
-                _LOGGER.debug("[%s] Response header: %s", path, response.headers)
-                _LOGGER.debug("[%s] Response status: %s", path, response.status)
-
-                if response.status in (401, 403):
-                    raise MontaApiClientAuthenticationError(
-                        "Invalid credentials",
+        while True:
+            try:
+                async with async_timeout.timeout(10):
+                    response = await self._session.request(
+                        method=method,
+                        url=f"{base_url}{path}",
+                        headers=all_headers,
+                        json=data,
                     )
-                response.raise_for_status()
-                response_json = await response.json()
 
-                _LOGGER.debug(
-                    "[%s] Response body : %s",
-                    path,
-                    self._filter_private_information(response_json),
-                )
+                    _LOGGER.debug("[%s] Response header: %s", path, response.headers)
+                    _LOGGER.debug("[%s] Response status: %s", path, response.status)
 
-                return response_json
+                    if response.status in (401, 403):
+                        raise MontaApiClientAuthenticationError(
+                            "Invalid credentials",
+                        )
 
-        except asyncio.TimeoutError as exception:
-            raise MontaApiClientCommunicationError(
-                "Timeout error fetching information",
-            ) from exception
-        except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise MontaApiClientCommunicationError(
-                "Error fetching information",
-            ) from exception
-        except MontaApiClientAuthenticationError:
-            raise
-        except Exception as exception:  # pylint: disable=broad-except
-            raise MontaApiClientError("Something really wrong happened!") from exception
+                    if response.status == 429:
+                        # Parse Monta JSON body for rate limit info; fall back to headers if missing
+                        retry_after_seconds: int | None = None
+                        remaining: int | None = None
+                        reset_at: datetime | None = None
+
+                        try:
+                            body = await response.json()
+                        except Exception:  # noqa: BLE001 - best effort parse for diagnostics
+                            body = None
+
+                        if isinstance(body, dict):
+                            context = body.get("context", {})
+                            rl = context.get("rateLimitResponse", {})
+                            if isinstance(rl, dict):
+                                # e.g., { timeWindow: 60, quota: 10, remaining: 0, resetsIn: 25, exceeded: true }
+                                retry_after_seconds = rl.get("resetsIn")
+                                remaining = rl.get("remaining")
+
+                        # Compute reset_at if we only have retry_after_seconds
+                        now = dt_util.utcnow()
+                        if reset_at is None and retry_after_seconds is not None:
+                            reset_at = now + timedelta(seconds=int(retry_after_seconds))
+
+                        # Set client-wide gate to avoid parallel hammering
+                        if reset_at is not None:
+                            self._rate_limited_until = reset_at
+
+                        # Determine if we should do a quick local retry
+                        if (
+                            retry_after_seconds is not None
+                            and int(retry_after_seconds) <= SHORT_RETRY_THRESHOLD_SECONDS
+                            and attempt < max_short_retries
+                        ):
+                            sleep_for = max(1, int(retry_after_seconds)) + random.uniform(0, 0.5)
+                            _LOGGER.info(
+                                "[%s] Rate limited (remaining=%s). Retrying in %.2fs (attempt %s/%s)",
+                                path,
+                                remaining,
+                                sleep_for,
+                                attempt + 1,
+                                max_short_retries,
+                            )
+                            await asyncio.sleep(sleep_for)
+                            attempt += 1
+                            continue
+
+                        # Otherwise, raise to the coordinator with details
+                        raise MontaApiClientRateLimitError(
+                            message="Rate limit exceeded",
+                            retry_after_seconds=(
+                                int(retry_after_seconds) if retry_after_seconds is not None else None
+                            ),
+                            reset_at=reset_at,
+                            remaining=remaining,
+                        )
+
+                    # Non-429 flow
+                    response.raise_for_status()
+                    response_json = await response.json()
+
+                    _LOGGER.debug(
+                        "[%s] Response body : %s",
+                        path,
+                        self._filter_private_information(response_json),
+                    )
+
+                    # Clear rate limit gate on successful request
+                    self._rate_limited_until = None
+
+                    return response_json
+
+            except asyncio.TimeoutError as exception:
+                raise MontaApiClientCommunicationError(
+                    "Timeout error fetching information",
+                ) from exception
+            except (aiohttp.ClientError, socket.gaierror) as exception:
+                raise MontaApiClientCommunicationError(
+                    "Error fetching information",
+                ) from exception
+            except (
+                MontaApiClientAuthenticationError,
+                MontaApiClientRateLimitError,
+            ):
+                # Bubble up to coordinator for auth errors and rate limits
+                raise
+            except Exception as exception:  # pylint: disable=broad-except
+                raise MontaApiClientError("Something really wrong happened!") from exception
 
     async def _async_update_preferences(
         self,
