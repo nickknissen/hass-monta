@@ -14,7 +14,20 @@ from .api import (
     MontaApiClientCommunicationError,
     MontaApiClientError,
 )
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, STORAGE_KEY, STORAGE_VERSION
+from .const import (
+    CONF_SCAN_INTERVAL,
+    CONF_SCAN_INTERVAL_CHARGE_POINTS,
+    CONF_SCAN_INTERVAL_WALLET,
+    CONF_SCAN_INTERVAL_TRANSACTIONS,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
+    DEFAULT_SCAN_INTERVAL_WALLET,
+    DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
+    DOMAIN,
+    LOGGER,
+    STORAGE_KEY,
+    STORAGE_VERSION,
+)
 
 
 class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -73,6 +86,39 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         selector.NumberSelectorConfig(
                             min=30,
                             max=3600,
+                            unit_of_measurement="seconds",
+                            mode=selector.NumberSelectorMode.BOX,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                        default=(user_input or {}).get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=30,
+                            max=3600,
+                            unit_of_measurement="seconds",
+                            mode=selector.NumberSelectorMode.BOX,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL_WALLET,
+                        default=(user_input or {}).get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=30,
+                            max=7200,
+                            unit_of_measurement="seconds",
+                            mode=selector.NumberSelectorMode.BOX,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL_TRANSACTIONS,
+                        default=(user_input or {}).get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=30,
+                            max=7200,
                             unit_of_measurement="seconds",
                             mode=selector.NumberSelectorMode.BOX,
                         ),
@@ -145,6 +191,9 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                             CONF_CLIENT_ID: user_input[CONF_CLIENT_ID],
                             CONF_CLIENT_SECRET: user_input[CONF_CLIENT_SECRET],
                             CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                            CONF_SCAN_INTERVAL_CHARGE_POINTS: user_input.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+                            CONF_SCAN_INTERVAL_WALLET: user_input.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+                            CONF_SCAN_INTERVAL_TRANSACTIONS: user_input.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
                         },
                     )
                 return self.async_create_entry(title="", data=user_input)
@@ -185,6 +234,48 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                         selector.NumberSelectorConfig(
                             min=30,
                             max=3600,
+                            unit_of_measurement="seconds",
+                            mode=selector.NumberSelectorMode.BOX,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                        default=self.config_entry.options.get(
+                            CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                            self.config_entry.data.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+                        ),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=30,
+                            max=3600,
+                            unit_of_measurement="seconds",
+                            mode=selector.NumberSelectorMode.BOX,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL_WALLET,
+                        default=self.config_entry.options.get(
+                            CONF_SCAN_INTERVAL_WALLET,
+                            self.config_entry.data.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+                        ),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=30,
+                            max=7200,
+                            unit_of_measurement="seconds",
+                            mode=selector.NumberSelectorMode.BOX,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL_TRANSACTIONS,
+                        default=self.config_entry.options.get(
+                            CONF_SCAN_INTERVAL_TRANSACTIONS,
+                            self.config_entry.data.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+                        ),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=30,
+                            max=7200,
                             unit_of_measurement="seconds",
                             mode=selector.NumberSelectorMode.BOX,
                         ),

@@ -12,7 +12,19 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import MontaApiClient
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, STORAGE_KEY, STORAGE_VERSION
+from .const import (
+    CONF_SCAN_INTERVAL,
+    CONF_SCAN_INTERVAL_CHARGE_POINTS,
+    CONF_SCAN_INTERVAL_WALLET,
+    CONF_SCAN_INTERVAL_TRANSACTIONS,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
+    DEFAULT_SCAN_INTERVAL_WALLET,
+    DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
+    DOMAIN,
+    STORAGE_KEY,
+    STORAGE_VERSION,
+)
 from .coordinator import MontaDataUpdateCoordinator
 from .services import async_setup_services
 
@@ -37,6 +49,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
     )
 
+    # Get individual scan intervals for each data type
+    scan_interval_charge_points = entry.options.get(
+        CONF_SCAN_INTERVAL_CHARGE_POINTS,
+        entry.data.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+    )
+    scan_interval_wallet = entry.options.get(
+        CONF_SCAN_INTERVAL_WALLET,
+        entry.data.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+    )
+    scan_interval_transactions = entry.options.get(
+        CONF_SCAN_INTERVAL_TRANSACTIONS,
+        entry.data.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+    )
+
     hass.data[DOMAIN][entry.entry_id] = coordinator = MontaDataUpdateCoordinator(
         hass=hass,
         client=MontaApiClient(
@@ -46,6 +72,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             store=store,
         ),
         scan_interval=scan_interval,
+        scan_interval_charge_points=scan_interval_charge_points,
+        scan_interval_wallet=scan_interval_wallet,
+        scan_interval_transactions=scan_interval_transactions,
     )
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
     await coordinator.async_config_entry_first_refresh()
