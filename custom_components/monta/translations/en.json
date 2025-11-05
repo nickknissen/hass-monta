@@ -5,7 +5,11 @@
 				"description": "👉 Monta Public API is in BETA currently.\nIn order to obtain client id/Client secret to it, you might have to opt-in to their Beta program. This can be done in your user account settings in the app or in Monta's CPMS. \n\nClient id and secret are obtained from https://portal2.monta.app/applications.",
 				"data": {
 					"client_id": "Client id",
-					"client_secret": "client secret"
+					"client_secret": "client secret",
+					"scan_interval": "Scan interval (seconds)"
+				},
+				"data_description": {
+					"scan_interval": "How often to fetch data from Monta API. Monta has a rate limit of 10 requests per minute. Recommended: 120 seconds or higher for multiple chargers."
 				}
 			}
 		},
@@ -13,6 +17,19 @@
 			"auth": "Client id/client secret is wrong.",
 			"connection": "Unable to connect to the server.",
 			"unknown": "Unknown error occurred."
+		}
+	},
+	"options": {
+		"step": {
+			"init": {
+				"description": "Configure Monta integration options",
+				"data": {
+					"scan_interval": "Scan interval (seconds)"
+				},
+				"data_description": {
+					"scan_interval": "How often to fetch data from Monta API. Monta has a rate limit of 10 requests per minute. Recommended: 120 seconds or higher for multiple chargers."
+				}
+			}
 		}
 	},
 	"services": {

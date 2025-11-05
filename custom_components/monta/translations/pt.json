@@ -5,7 +5,11 @@
         "description": "👉 A API Pública da Monta está atualmente em BETA.\nPara obter o ID do cliente/segredo do cliente, pode ser necessário aderir ao programa Beta. Isto pode ser feito nas configurações da sua conta de utilizador na aplicação ou no CPMS da Monta.\n\nO ID e o segredo do cliente são obtidos em https://portal2.monta.app/applications.",
         "data": {
           "client_id": "ID do cliente",
-          "client_secret": "Segredo do cliente"
+          "client_secret": "Segredo do cliente",
+          "scan_interval": "Intervalo de varredura (segundos)"
+        },
+        "data_description": {
+          "scan_interval": "Com que frequência buscar dados da API Monta. A Monta tem um limite de 10 solicitações por minuto. Recomendado: 120 segundos ou mais para vários carregadores."
         }
       }
     },
@@ -13,6 +17,19 @@
       "auth": "ID do cliente/segredo do cliente está incorreto.",
       "connection": "Não foi possível ligar ao servidor.",
       "unknown": "Ocorreu um erro desconhecido."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Configurar opções de integração Monta",
+        "data": {
+          "scan_interval": "Intervalo de varredura (segundos)"
+        },
+        "data_description": {
+          "scan_interval": "Com que frequência buscar dados da API Monta. A Monta tem um limite de 10 solicitações por minuto. Recomendado: 120 segundos ou mais para vários carregadores."
+        }
+      }
     }
   },
   "services": {
