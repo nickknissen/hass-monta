@@ -12,8 +12,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import ATTR_CHARGE_POINTS, DOMAIN, ChargerStatus
-from .coordinator import MontaDataUpdateCoordinator
+from .const import DOMAIN, ChargerStatus
+from .coordinator import MontaChargePointCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
 
@@ -29,13 +29,14 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
 ):
     """Set up the sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinators = hass.data[DOMAIN][entry.entry_id]
+    charge_point_coordinator = coordinators["charge_point"]
 
-    for charge_point_id in coordinator.data[ATTR_CHARGE_POINTS]:
+    for charge_point_id in charge_point_coordinator.data:
         async_add_devices(
             [
                 MontaSwitch(
-                    coordinator,
+                    charge_point_coordinator,
                     description,
                     charge_point_id,
                 )
@@ -49,7 +50,7 @@ class MontaSwitch(MontaEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: MontaDataUpdateCoordinator,
+        coordinator: MontaChargePointCoordinator,
         entity_description: SwitchEntityDescription,
         charge_point_id: int,
     ) -> None:
@@ -72,7 +73,7 @@ class MontaSwitch(MontaEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return the availability of the switch."""
-        return self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id][
+        return self.coordinator.data[self.charge_point_id][
             "state"
         ] not in {
             ChargerStatus.DISCONNECTED,
@@ -84,7 +85,7 @@ class MontaSwitch(MontaEntity, SwitchEntity):
         """Return the status of pause/resume."""
         if self._local_state is not None:
             return self._local_state
-        return self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id][
+        return self.coordinator.data[self.charge_point_id][
             "state"
         ] in {
             ChargerStatus.BUSY_CHARGING,

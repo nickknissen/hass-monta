@@ -12,8 +12,8 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.helpers.entity import generate_entity_id
 
-from .const import ATTR_CHARGE_POINTS, DOMAIN
-from .coordinator import MontaDataUpdateCoordinator
+from .const import DOMAIN
+from .coordinator import MontaChargePointCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
 
@@ -30,13 +30,14 @@ ENTITY_DESCRIPTIONS = (
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the binary_sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinators = hass.data[DOMAIN][entry.entry_id]
+    charge_point_coordinator = coordinators["charge_point"]
 
-    for charge_point_id in coordinator.data[ATTR_CHARGE_POINTS]:
+    for charge_point_id in charge_point_coordinator.data:
         async_add_devices(
             [
                 MontaBinarySensor(
-                    coordinator=coordinator,
+                    coordinator=charge_point_coordinator,
                     entity_description=entity_description,
                     charge_point_id=charge_point_id,
                 )
@@ -50,7 +51,7 @@ class MontaBinarySensor(MontaEntity, BinarySensorEntity):
 
     def __init__(
         self,
-        coordinator: MontaDataUpdateCoordinator,
+        coordinator: MontaChargePointCoordinator,
         entity_description: BinarySensorEntityDescription,
         charge_point_id: int,
     ) -> None:
@@ -67,6 +68,6 @@ class MontaBinarySensor(MontaEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary_sensor is on."""
-        return self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id].get(
+        return self.coordinator.data[self.charge_point_id].get(
             self.entity_description.key, False
         )

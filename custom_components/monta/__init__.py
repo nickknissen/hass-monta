@@ -12,8 +12,22 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import MontaApiClient
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, STORAGE_KEY, STORAGE_VERSION
-from .coordinator import MontaDataUpdateCoordinator
+from .const import (
+    CONF_SCAN_INTERVAL_CHARGE_POINTS,
+    CONF_SCAN_INTERVAL_WALLET,
+    CONF_SCAN_INTERVAL_TRANSACTIONS,
+    DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
+    DEFAULT_SCAN_INTERVAL_WALLET,
+    DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
+    DOMAIN,
+    STORAGE_KEY,
+    STORAGE_VERSION,
+)
+from .coordinator import (
+    MontaChargePointCoordinator,
+    MontaWalletCoordinator,
+    MontaTransactionCoordinator,
+)
 from .services import async_setup_services
 
 PLATFORMS: list[Platform] = [
@@ -31,24 +45,57 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
     await store.async_remove()
 
-    # Get scan interval from options or data, with default fallback
-    scan_interval = entry.options.get(
-        CONF_SCAN_INTERVAL,
-        entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+    # Get individual scan intervals for each data type
+    scan_interval_charge_points = entry.options.get(
+        CONF_SCAN_INTERVAL_CHARGE_POINTS,
+        entry.data.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+    )
+    scan_interval_wallet = entry.options.get(
+        CONF_SCAN_INTERVAL_WALLET,
+        entry.data.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+    )
+    scan_interval_transactions = entry.options.get(
+        CONF_SCAN_INTERVAL_TRANSACTIONS,
+        entry.data.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
     )
 
-    hass.data[DOMAIN][entry.entry_id] = coordinator = MontaDataUpdateCoordinator(
-        hass=hass,
-        client=MontaApiClient(
-            client_id=entry.data[CONF_CLIENT_ID],
-            client_secret=entry.data[CONF_CLIENT_SECRET],
-            session=async_get_clientsession(hass),
-            store=store,
-        ),
-        scan_interval=scan_interval,
+    # Create API client shared by all coordinators
+    client = MontaApiClient(
+        client_id=entry.data[CONF_CLIENT_ID],
+        client_secret=entry.data[CONF_CLIENT_SECRET],
+        session=async_get_clientsession(hass),
+        store=store,
     )
+
+    # Create separate coordinators for each data type
+    charge_point_coordinator = MontaChargePointCoordinator(
+        hass=hass,
+        client=client,
+        scan_interval=scan_interval_charge_points,
+    )
+    wallet_coordinator = MontaWalletCoordinator(
+        hass=hass,
+        client=client,
+        scan_interval=scan_interval_wallet,
+    )
+    transaction_coordinator = MontaTransactionCoordinator(
+        hass=hass,
+        client=client,
+        scan_interval=scan_interval_transactions,
+    )
+
+    # Store coordinators in a dictionary
+    hass.data[DOMAIN][entry.entry_id] = {
+        "charge_point": charge_point_coordinator,
+        "wallet": wallet_coordinator,
+        "transaction": transaction_coordinator,
+    }
+
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    await coordinator.async_config_entry_first_refresh()
+    # Refresh all coordinators
+    await charge_point_coordinator.async_config_entry_first_refresh()
+    await wallet_coordinator.async_config_entry_first_refresh()
+    await transaction_coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
