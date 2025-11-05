@@ -14,9 +14,6 @@ ATTR_CHARGE_POINTS = "charge_points"
 ATTR_WALLET = "wallet"
 ATTR_TRANSACTIONS = "transactions"
 
-CONF_SCAN_INTERVAL = "scan_interval"
-DEFAULT_SCAN_INTERVAL = 120  # Default to 120 seconds to stay within rate limits
-
 # Separate scan intervals for different data types
 CONF_SCAN_INTERVAL_CHARGE_POINTS = "scan_interval_charge_points"
 CONF_SCAN_INTERVAL_WALLET = "scan_interval_wallet"

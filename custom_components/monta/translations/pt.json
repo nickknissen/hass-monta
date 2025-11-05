@@ -6,10 +6,14 @@
         "data": {
           "client_id": "ID do cliente",
           "client_secret": "Segredo do cliente",
-          "scan_interval": "Intervalo de varredura (segundos)"
+          "scan_interval_charge_points": "Intervalo de Pontos de Carregamento (segundos)",
+          "scan_interval_wallet": "Intervalo de Carteira (segundos)",
+          "scan_interval_transactions": "Intervalo de Transações (segundos)"
         },
         "data_description": {
-          "scan_interval": "Com que frequência buscar dados da API Monta. A Monta tem um limite de 10 solicitações por minuto. Recomendado: 120 segundos ou mais para vários carregadores."
+          "scan_interval_charge_points": "Com que frequência buscar dados dos pontos de carregamento. Recomendado: 120 segundos (Monta tem limite de 10 solicitações/min)",
+          "scan_interval_wallet": "Com que frequência buscar dados da carteira. Recomendado: 600 segundos (10 minutos)",
+          "scan_interval_transactions": "Com que frequência buscar dados de transações. Recomendado: 600 segundos (10 minutos)"
         }
       }
     },
@@ -22,16 +26,20 @@
   "options": {
     "step": {
       "init": {
-        "description": "Configurar opções de integração Monta. Você pode atualizar suas credenciais ou ajustar o intervalo de varredura aqui.",
+        "description": "Configurar opções de integração Monta. Você pode atualizar suas credenciais ou ajustar os intervalos de varredura aqui.",
         "data": {
           "client_id": "ID do cliente",
           "client_secret": "Segredo do cliente",
-          "scan_interval": "Intervalo de varredura (segundos)"
+          "scan_interval_charge_points": "Intervalo de Pontos de Carregamento (segundos)",
+          "scan_interval_wallet": "Intervalo de Carteira (segundos)",
+          "scan_interval_transactions": "Intervalo de Transações (segundos)"
         },
         "data_description": {
           "client_id": "Seu ID de cliente da API Monta de https://portal2.monta.app/applications",
           "client_secret": "Seu segredo de cliente da API Monta de https://portal2.monta.app/applications",
-          "scan_interval": "Com que frequência buscar dados da API Monta. A Monta tem um limite de 10 solicitações por minuto. Recomendado: 120 segundos ou mais para vários carregadores."
+          "scan_interval_charge_points": "Com que frequência buscar dados dos pontos de carregamento. Recomendado: 120 segundos (Monta tem limite de 10 solicitações/min)",
+          "scan_interval_wallet": "Com que frequência buscar dados da carteira. Recomendado: 600 segundos (10 minutos)",
+          "scan_interval_transactions": "Com que frequência buscar dados de transações. Recomendado: 600 segundos (10 minutos)"
         }
       }
     }
