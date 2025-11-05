@@ -26,14 +26,15 @@ from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    ATTR_CHARGE_POINTS,
-    ATTR_TRANSACTIONS,
-    ATTR_WALLET,
     ATTRIBUTION,
     DOMAIN,
     ChargerStatus,
 )
-from .coordinator import MontaDataUpdateCoordinator
+from .coordinator import (
+    MontaChargePointCoordinator,
+    MontaWalletCoordinator,
+    MontaTransactionCoordinator,
+)
 from .entity import MontaEntity
 from .utils import snake_case
 
@@ -194,13 +195,16 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up the sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinators = hass.data[DOMAIN][entry.entry_id]
+    charge_point_coordinator = coordinators["charge_point"]
+    wallet_coordinator = coordinators["wallet"]
+    transaction_coordinator = coordinators["transaction"]
 
-    for charge_point_id in coordinator.data[ATTR_CHARGE_POINTS]:
+    for charge_point_id in charge_point_coordinator.data:
         async_add_entities(
             [
                 MontaChargePointSensor(
-                    coordinator,
+                    charge_point_coordinator,
                     entry,
                     description,
                     charge_point_id,
@@ -211,13 +215,13 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            MontaWalletSensor(coordinator, entry, description)
+            MontaWalletSensor(wallet_coordinator, entry, description)
             for description in WALLET_ENTITY_DESCRIPTIONS
         ]
     )
     async_add_entities(
         [
-            MontaTransactionsSensor(coordinator, entry, description)
+            MontaTransactionsSensor(transaction_coordinator, entry, description)
             for description in TRANSACTION_ENTITY_DESCRIPTIONS
         ]
     )
@@ -228,7 +232,7 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MontaDataUpdateCoordinator,
+        coordinator: MontaChargePointCoordinator,
         _: ConfigEntry,
         entity_description: SensorEntityDescription,
         charge_point_id: int,
@@ -247,7 +251,7 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
     def native_value(self) -> StateType:
         """Return the state."""
         return self.entity_description.value_fn(
-            self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id]
+            self.coordinator.data[self.charge_point_id]
         )
 
     @property
@@ -260,12 +264,12 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
         """Return the state attributes."""
         if self.entity_description.extra_state_attributes_fn:
             return self.entity_description.extra_state_attributes_fn(
-                self.coordinator.data[ATTR_CHARGE_POINTS][self.charge_point_id]
+                self.coordinator.data[self.charge_point_id]
             )
         return None
 
 
-class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEntity):
+class MontaWalletSensor(CoordinatorEntity[MontaWalletCoordinator], SensorEntity):
     """monta Sensor class."""
 
     _attr_attribution = ATTRIBUTION
@@ -273,7 +277,7 @@ class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEnt
 
     def __init__(
         self,
-        coordinator: MontaDataUpdateCoordinator,
+        coordinator: MontaWalletCoordinator,
         _: ConfigEntry,
         entity_description: SensorEntityDescription,
     ) -> None:
@@ -291,14 +295,13 @@ class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEnt
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of the sensor."""
         if self.coordinator.data:
-            wallet_data = self.coordinator.data.get(ATTR_WALLET, {})
-            if wallet_currency := wallet_data.get("currency"):
+            if wallet_currency := self.coordinator.data.get("currency"):
                 return wallet_currency.get("identifier", "").upper()
 
     @property
     def native_value(self) -> StateType:
         """Return the state."""
-        return self.entity_description.value_fn(self.coordinator.data[ATTR_WALLET])
+        return self.entity_description.value_fn(self.coordinator.data)
 
     @property
     def extra_attributes(self) -> str:
@@ -310,13 +313,13 @@ class MontaWalletSensor(CoordinatorEntity[MontaDataUpdateCoordinator], SensorEnt
         """Return the state attributes."""
         if self.entity_description.extra_state_attributes_fn:
             return self.entity_description.extra_state_attributes_fn(
-                self.coordinator.data[ATTR_WALLET]
+                self.coordinator.data
             )
         return None
 
 
 class MontaTransactionsSensor(
-    CoordinatorEntity[MontaDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[MontaTransactionCoordinator], SensorEntity
 ):
     """monta Sensor class."""
 
@@ -325,7 +328,7 @@ class MontaTransactionsSensor(
 
     def __init__(
         self,
-        coordinator: MontaDataUpdateCoordinator,
+        coordinator: MontaTransactionCoordinator,
         _: ConfigEntry,
         entity_description: SensorEntityDescription,
     ) -> None:
@@ -342,7 +345,7 @@ class MontaTransactionsSensor(
     @property
     def native_value(self) -> StateType:
         """Return the state."""
-        transactions = self.coordinator.data.get(ATTR_TRANSACTIONS, [])
+        transactions = self.coordinator.data if self.coordinator.data else []
         if not transactions:
             return None
         return self.entity_description.value_fn(
@@ -359,7 +362,7 @@ class MontaTransactionsSensor(
         """Converts the dates to correct home assitant format."""
         attributes = {}
 
-        if data := self.coordinator.data.get(ATTR_TRANSACTIONS, []):
+        if data := self.coordinator.data:
             for transaction in data:
                 for key in WALLET_DATE_KEYS:
                     if key in transaction:
