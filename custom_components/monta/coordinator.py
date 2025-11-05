@@ -38,9 +38,9 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         try:
             charge_points = await self.client.async_get_charge_points()
             for charge_point_id in charge_points:
-                charge_points[charge_point_id][
-                    "charges"
-                ] = await self.client.async_get_charges(charge_point_id)
+                charge_points[charge_point_id].charges = (
+                    await self.client.async_get_charges(charge_point_id)
+                )
             return charge_points
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
@@ -60,7 +60,7 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         """Stop a charge."""
         charges = await self.client.async_get_charges(charge_point_id)
         try:
-            return await self.client.async_stop_charge(charges[0]["id"])
+            return await self.client.async_stop_charge(charges[0].id)
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except MontaApiClientError as exception:

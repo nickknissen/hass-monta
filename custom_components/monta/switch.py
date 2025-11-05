@@ -73,9 +73,7 @@ class MontaSwitch(MontaEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return the availability of the switch."""
-        return self.coordinator.data[self.charge_point_id][
-            "state"
-        ] not in {
+        return self.coordinator.data[self.charge_point_id].state not in {
             ChargerStatus.DISCONNECTED,
             ChargerStatus.ERROR,
         }
@@ -85,9 +83,7 @@ class MontaSwitch(MontaEntity, SwitchEntity):
         """Return the status of pause/resume."""
         if self._local_state is not None:
             return self._local_state
-        return self.coordinator.data[self.charge_point_id][
-            "state"
-        ] in {
+        return self.coordinator.data[self.charge_point_id].state in {
             ChargerStatus.BUSY_CHARGING,
             ChargerStatus.BUSY,
             ChargerStatus.BUSY_SCHEDULED,

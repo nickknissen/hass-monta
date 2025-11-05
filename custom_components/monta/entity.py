@@ -33,8 +33,8 @@ class MontaEntity(CoordinatorEntity[MontaChargePointCoordinator]):
                     self.charge_point_id,
                 )
             },
-            name=f"Monta - {chargepoint['name']}",
-            manufacturer=chargepoint["brandName"],
-            model=chargepoint["modelName"],
-            sw_version=chargepoint["firmwareVersion"],
+            name=f"Monta - {chargepoint.name}",
+            manufacturer=chargepoint.brand_name,
+            model=chargepoint.model_name,
+            sw_version=chargepoint.firmware_version,
         )

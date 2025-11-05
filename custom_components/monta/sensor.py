@@ -4,10 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any
 
-from dateutil import parser
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
     SensorDeviceClass,
@@ -36,24 +34,8 @@ from .coordinator import (
     MontaTransactionCoordinator,
 )
 from .entity import MontaEntity
+from .models import ChargePoint, Wallet, WalletTransaction
 from .utils import snake_case
-
-CHARGE_POINT_DATE_KEYS = [
-    "createdAt",
-    "updatedAt",
-    "startedAt",
-    "stoppedAt",
-    "cablePluggedInAt",
-    "fullyChargedAt",
-    "failedAt",
-    "timeoutAt",
-]
-WALLET_DATE_KEYS = [
-    "createdAt",
-    "updatedAt",
-    "completedAt",
-]
-
 
 @dataclass
 class MontaSensorEntityDescriptionMixin:
@@ -70,54 +52,37 @@ class MontaSensorEntityDescription(
     """Describes MontaSensor sensor entity."""
 
 
-def last_charge_state(data: dict[str, Any]) -> str:
+def last_charge_state(data: ChargePoint) -> str:
     """Process state for last charge (if available)."""
-    return data["charges"][0]["state"] if len(data["charges"]) > 0 else None
+    return data.charges[0].state if len(data.charges) > 0 else None
 
 
-def last_charge_extra_attributes(data: dict[str, Any]) -> dict[str, Any]:
+def last_charge_extra_attributes(data: ChargePoint) -> dict[str, Any]:
     """Process extra attributes for last charge (if available)."""
-    if data["charges"]:
-        attributes = data["charges"][0]
-        for key in CHARGE_POINT_DATE_KEYS:
-            if key in attributes:
-                attributes[key] = _parse_date(attributes[key])
-
-        return attributes
+    if data.charges:
+        # Convert the Charge object back to dict for Home Assistant attributes
+        return data.charges[0].to_dict()
 
     return None
 
 
-def wallet_credit_extra_attribute(data: dict[str, Any]) -> dict[str, Any]:
+def wallet_credit_extra_attribute(data: Wallet) -> dict[str, Any]:
     """Process extra attributes for last charge (if available)."""
-    if data["balance"]:
-        return {"credit": data["balance"]["credit"]}
+    if data.balance:
+        return {"credit": data.balance.credit}
 
     return None
 
 
-def wallet_extra_attributes(data: list[dict[str, Any]]) -> dict[str, Any]:
+def wallet_extra_attributes(data: list[WalletTransaction]) -> dict[str, Any]:
     """Process extra attributes for the wallet (if available)."""
     attributes = {}
 
     if data:
-        for transaction in data:
-            for key in WALLET_DATE_KEYS:
-                if key in transaction:
-                    transaction[key] = _parse_date(transaction[key])
-        attributes["transactions"] = data
+        # Convert WalletTransaction objects to dicts for Home Assistant attributes
+        attributes["transactions"] = [tx.to_dict() for tx in data]
 
     return attributes
-
-
-def _parse_date(chargedate: str):
-    if isinstance(chargedate, str):
-        return parser.parse(chargedate)
-
-    if isinstance(chargedate, datetime):
-        return chargedate
-
-    return None
 
 
 CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
@@ -127,7 +92,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         icon="mdi:eye",
         device_class=SensorDeviceClass.ENUM,
         options=["public", "private"],
-        value_fn=lambda data: data["visibility"],
+        value_fn=lambda data: data.visibility,
         extra_state_attributes_fn=None,
     ),
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
@@ -136,7 +101,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         icon="mdi:current-ac",
         device_class=SensorDeviceClass.ENUM,
         options=["ac", "dc"],
-        value_fn=lambda data: data["type"],
+        value_fn=lambda data: data.type,
         extra_state_attributes_fn=None,
     ),
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
@@ -145,7 +110,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         icon="mdi:state-machine",
         device_class=SensorDeviceClass.ENUM,
         options=[x.value for x in ChargerStatus],
-        value_fn=lambda data: data["state"],
+        value_fn=lambda data: data.state,
         extra_state_attributes_fn=None,
     ),
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
@@ -155,7 +120,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENERGY,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        value_fn=lambda data: data["lastMeterReadingKwh"],
+        value_fn=lambda data: data.last_meter_reading_kwh,
         extra_state_attributes_fn=None,
     ),
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
@@ -173,9 +138,7 @@ WALLET_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         name="Monta - Personal Wallet",
         icon="mdi:wallet",
         device_class=SensorDeviceClass.MONETARY,
-        value_fn=lambda data: data["balance"]["amount"]
-        if data.get("balance")
-        else None,
+        value_fn=lambda data: data.balance.amount if data.balance else None,
         extra_state_attributes_fn=wallet_credit_extra_attribute,
     ),
 )
@@ -294,9 +257,8 @@ class MontaWalletSensor(CoordinatorEntity[MontaWalletCoordinator], SensorEntity)
     @property
     def native_unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of the sensor."""
-        if self.coordinator.data:
-            if wallet_currency := self.coordinator.data.get("currency"):
-                return wallet_currency.get("identifier", "").upper()
+        if self.coordinator.data and self.coordinator.data.currency:
+            return self.coordinator.data.currency.identifier.upper()
 
     @property
     def native_value(self) -> StateType:
@@ -348,9 +310,7 @@ class MontaTransactionsSensor(
         transactions = self.coordinator.data if self.coordinator.data else []
         if not transactions:
             return None
-        return self.entity_description.value_fn(
-            transactions[0]["state"]
-        )
+        return transactions[0].state
 
     @property
     def extra_attributes(self) -> str:
@@ -363,10 +323,7 @@ class MontaTransactionsSensor(
         attributes = {}
 
         if data := self.coordinator.data:
-            for transaction in data:
-                for key in WALLET_DATE_KEYS:
-                    if key in transaction:
-                        transaction[key] = _parse_date(transaction[key])
-            attributes["transactions"] = data
+            # Convert WalletTransaction objects to dicts for Home Assistant attributes
+            attributes["transactions"] = [tx.to_dict() for tx in data]
 
         return attributes
