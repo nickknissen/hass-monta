@@ -14,6 +14,9 @@ ATTR_CHARGE_POINTS = "charge_points"
 ATTR_WALLET = "wallet"
 ATTR_TRANSACTIONS = "transactions"
 
+CONF_SCAN_INTERVAL = "scan_interval"
+DEFAULT_SCAN_INTERVAL = 120  # Default to 120 seconds to stay within rate limits
+
 PREEMPTIVE_REFRESH_TTL_IN_SECONDS = 300
 STORAGE_KEY = "monta_auth"
 STORAGE_VERSION = 1

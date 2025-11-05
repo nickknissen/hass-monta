@@ -12,7 +12,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import MontaApiClient
-from .const import DOMAIN, STORAGE_KEY, STORAGE_VERSION
+from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, STORAGE_KEY, STORAGE_VERSION
 from .coordinator import MontaDataUpdateCoordinator
 from .services import async_setup_services
 
@@ -31,6 +31,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
     await store.async_remove()
 
+    # Get scan interval from options or data, with default fallback
+    scan_interval = entry.options.get(
+        CONF_SCAN_INTERVAL,
+        entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+    )
+
     hass.data[DOMAIN][entry.entry_id] = coordinator = MontaDataUpdateCoordinator(
         hass=hass,
         client=MontaApiClient(
@@ -39,6 +45,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             session=async_get_clientsession(hass),
             store=store,
         ),
+        scan_interval=scan_interval,
     )
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
     await coordinator.async_config_entry_first_refresh()

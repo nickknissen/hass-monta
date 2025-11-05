@@ -18,14 +18,16 @@ class MontaDataUpdateCoordinator(DataUpdateCoordinator):
 
     config_entry: ConfigEntry
 
-    def __init__(self, hass: HomeAssistant, client: MontaApiClient) -> None:
+    def __init__(
+        self, hass: HomeAssistant, client: MontaApiClient, scan_interval: int
+    ) -> None:
         """Initialize."""
         self.client = client
         super().__init__(
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=30),
+            update_interval=timedelta(seconds=scan_interval),
         )
 
     async def _async_update_data(self):
