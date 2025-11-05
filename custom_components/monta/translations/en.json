@@ -22,11 +22,15 @@
 	"options": {
 		"step": {
 			"init": {
-				"description": "Configure Monta integration options",
+				"description": "Configure Monta integration options. You can update your credentials or adjust the scan interval here.",
 				"data": {
+					"client_id": "Client id",
+					"client_secret": "Client secret",
 					"scan_interval": "Scan interval (seconds)"
 				},
 				"data_description": {
+					"client_id": "Your Monta API client ID from https://portal2.monta.app/applications",
+					"client_secret": "Your Monta API client secret from https://portal2.monta.app/applications",
 					"scan_interval": "How often to fetch data from Monta API. Monta has a rate limit of 10 requests per minute. Recommended: 120 seconds or higher for multiple chargers."
 				}
 			}

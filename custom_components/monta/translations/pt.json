@@ -22,11 +22,15 @@
   "options": {
     "step": {
       "init": {
-        "description": "Configurar opções de integração Monta",
+        "description": "Configurar opções de integração Monta. Você pode atualizar suas credenciais ou ajustar o intervalo de varredura aqui.",
         "data": {
+          "client_id": "ID do cliente",
+          "client_secret": "Segredo do cliente",
           "scan_interval": "Intervalo de varredura (segundos)"
         },
         "data_description": {
+          "client_id": "Seu ID de cliente da API Monta de https://portal2.monta.app/applications",
+          "client_secret": "Seu segredo de cliente da API Monta de https://portal2.monta.app/applications",
           "scan_interval": "Com que frequência buscar dados da API Monta. A Monta tem um limite de 10 solicitações por minuto. Recomendado: 120 segundos ou mais para vários carregadores."
         }
       }
