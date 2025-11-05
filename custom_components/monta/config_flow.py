@@ -30,6 +30,74 @@ from .const import (
 )
 
 
+def build_schema(defaults: dict) -> vol.Schema:
+    """Build the configuration schema with provided defaults."""
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_CLIENT_ID,
+                default=defaults.get(CONF_CLIENT_ID),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(
+                    type=selector.TextSelectorType.TEXT
+                ),
+            ),
+            vol.Required(
+                CONF_CLIENT_SECRET,
+                default=defaults.get(CONF_CLIENT_SECRET),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(
+                    type=selector.TextSelectorType.PASSWORD
+                ),
+            ),
+            vol.Optional(
+                CONF_SCAN_INTERVAL,
+                default=defaults.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=30,
+                    max=3600,
+                    unit_of_measurement="seconds",
+                    mode=selector.NumberSelectorMode.BOX,
+                ),
+            ),
+            vol.Optional(
+                CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                default=defaults.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=30,
+                    max=3600,
+                    unit_of_measurement="seconds",
+                    mode=selector.NumberSelectorMode.BOX,
+                ),
+            ),
+            vol.Optional(
+                CONF_SCAN_INTERVAL_WALLET,
+                default=defaults.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=30,
+                    max=7200,
+                    unit_of_measurement="seconds",
+                    mode=selector.NumberSelectorMode.BOX,
+                ),
+            ),
+            vol.Optional(
+                CONF_SCAN_INTERVAL_TRANSACTIONS,
+                default=defaults.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=30,
+                    max=7200,
+                    unit_of_measurement="seconds",
+                    mode=selector.NumberSelectorMode.BOX,
+                ),
+            ),
+        }
+    )
+
+
 class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Monta."""
 
@@ -64,67 +132,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_CLIENT_ID,
-                        default=(user_input or {}).get(CONF_CLIENT_ID),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        ),
-                    ),
-                    vol.Required(CONF_CLIENT_SECRET): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.PASSWORD
-                        ),
-                    ),
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL,
-                        default=(user_input or {}).get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=30,
-                            max=3600,
-                            unit_of_measurement="seconds",
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL_CHARGE_POINTS,
-                        default=(user_input or {}).get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=30,
-                            max=3600,
-                            unit_of_measurement="seconds",
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL_WALLET,
-                        default=(user_input or {}).get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=30,
-                            max=7200,
-                            unit_of_measurement="seconds",
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL_TRANSACTIONS,
-                        default=(user_input or {}).get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=30,
-                            max=7200,
-                            unit_of_measurement="seconds",
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                }
-            ),
+            data_schema=build_schema(user_input or {}),
             errors=_errors,
         )
 
@@ -198,90 +206,37 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                     )
                 return self.async_create_entry(title="", data=user_input)
 
+        # Build defaults from user_input -> options -> data
+        defaults = {
+            CONF_CLIENT_ID: (user_input or {}).get(
+                CONF_CLIENT_ID,
+                self.config_entry.data.get(CONF_CLIENT_ID),
+            ),
+            CONF_CLIENT_SECRET: (user_input or {}).get(
+                CONF_CLIENT_SECRET,
+                self.config_entry.data.get(CONF_CLIENT_SECRET),
+            ),
+            CONF_SCAN_INTERVAL: self.config_entry.options.get(
+                CONF_SCAN_INTERVAL,
+                self.config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+            ),
+            CONF_SCAN_INTERVAL_CHARGE_POINTS: self.config_entry.options.get(
+                CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                self.config_entry.data.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+            ),
+            CONF_SCAN_INTERVAL_WALLET: self.config_entry.options.get(
+                CONF_SCAN_INTERVAL_WALLET,
+                self.config_entry.data.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+            ),
+            CONF_SCAN_INTERVAL_TRANSACTIONS: self.config_entry.options.get(
+                CONF_SCAN_INTERVAL_TRANSACTIONS,
+                self.config_entry.data.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+            ),
+        }
+
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_CLIENT_ID,
-                        default=(user_input or {}).get(
-                            CONF_CLIENT_ID,
-                            self.config_entry.data.get(CONF_CLIENT_ID),
-                        ),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        ),
-                    ),
-                    vol.Required(
-                        CONF_CLIENT_SECRET,
-                        default=(user_input or {}).get(
-                            CONF_CLIENT_SECRET,
-                            self.config_entry.data.get(CONF_CLIENT_SECRET),
-                        ),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.PASSWORD
-                        ),
-                    ),
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL,
-                        default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL,
-                            self.config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                        ),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=30,
-                            max=3600,
-                            unit_of_measurement="seconds",
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL_CHARGE_POINTS,
-                        default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL_CHARGE_POINTS,
-                            self.config_entry.data.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
-                        ),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=30,
-                            max=3600,
-                            unit_of_measurement="seconds",
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL_WALLET,
-                        default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL_WALLET,
-                            self.config_entry.data.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
-                        ),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=30,
-                            max=7200,
-                            unit_of_measurement="seconds",
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL_TRANSACTIONS,
-                        default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL_TRANSACTIONS,
-                            self.config_entry.data.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
-                        ),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=30,
-                            max=7200,
-                            unit_of_measurement="seconds",
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                }
-            ),
+            data_schema=build_schema(defaults),
             errors=_errors,
         )
 
