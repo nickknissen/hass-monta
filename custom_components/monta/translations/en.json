@@ -6,10 +6,14 @@
 				"data": {
 					"client_id": "Client id",
 					"client_secret": "client secret",
-					"scan_interval": "Scan interval (seconds)"
+					"scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
+					"scan_interval_wallet": "Wallet Scan Interval (seconds)",
+					"scan_interval_transactions": "Transactions Scan Interval (seconds)"
 				},
 				"data_description": {
-					"scan_interval": "How often to fetch data from Monta API. Monta has a rate limit of 10 requests per minute. Recommended: 120 seconds or higher for multiple chargers."
+					"scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
+					"scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
+					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
 				}
 			}
 		},
@@ -22,16 +26,20 @@
 	"options": {
 		"step": {
 			"init": {
-				"description": "Configure Monta integration options. You can update your credentials or adjust the scan interval here.",
+				"description": "Configure Monta integration options. You can update your credentials or adjust the scan intervals here.",
 				"data": {
 					"client_id": "Client id",
 					"client_secret": "Client secret",
-					"scan_interval": "Scan interval (seconds)"
+					"scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
+					"scan_interval_wallet": "Wallet Scan Interval (seconds)",
+					"scan_interval_transactions": "Transactions Scan Interval (seconds)"
 				},
 				"data_description": {
 					"client_id": "Your Monta API client ID from https://portal2.monta.app/applications",
 					"client_secret": "Your Monta API client secret from https://portal2.monta.app/applications",
-					"scan_interval": "How often to fetch data from Monta API. Monta has a rate limit of 10 requests per minute. Recommended: 120 seconds or higher for multiple chargers."
+					"scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
+					"scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
+					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
 				}
 			}
 		}

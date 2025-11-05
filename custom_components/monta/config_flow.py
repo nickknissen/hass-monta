@@ -15,11 +15,9 @@ from .api import (
     MontaApiClientError,
 )
 from .const import (
-    CONF_SCAN_INTERVAL,
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
     CONF_SCAN_INTERVAL_WALLET,
     CONF_SCAN_INTERVAL_TRANSACTIONS,
-    DEFAULT_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
     DEFAULT_SCAN_INTERVAL_WALLET,
     DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
@@ -48,17 +46,6 @@ def build_schema(defaults: dict) -> vol.Schema:
             ): selector.TextSelector(
                 selector.TextSelectorConfig(
                     type=selector.TextSelectorType.PASSWORD
-                ),
-            ),
-            vol.Optional(
-                CONF_SCAN_INTERVAL,
-                default=defaults.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=30,
-                    max=3600,
-                    unit_of_measurement="seconds",
-                    mode=selector.NumberSelectorMode.BOX,
                 ),
             ),
             vol.Optional(
@@ -198,7 +185,6 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                         data={
                             CONF_CLIENT_ID: user_input[CONF_CLIENT_ID],
                             CONF_CLIENT_SECRET: user_input[CONF_CLIENT_SECRET],
-                            CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                             CONF_SCAN_INTERVAL_CHARGE_POINTS: user_input.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
                             CONF_SCAN_INTERVAL_WALLET: user_input.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
                             CONF_SCAN_INTERVAL_TRANSACTIONS: user_input.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
@@ -215,10 +201,6 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_CLIENT_SECRET: (user_input or {}).get(
                 CONF_CLIENT_SECRET,
                 self.config_entry.data.get(CONF_CLIENT_SECRET),
-            ),
-            CONF_SCAN_INTERVAL: self.config_entry.options.get(
-                CONF_SCAN_INTERVAL,
-                self.config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
             ),
             CONF_SCAN_INTERVAL_CHARGE_POINTS: self.config_entry.options.get(
                 CONF_SCAN_INTERVAL_CHARGE_POINTS,
