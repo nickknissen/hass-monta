@@ -13,7 +13,7 @@
     "custom_components.monta"
   ],
   "requirements": [
-    "git+https://github.com/nickknissen/monta-python.git@main#egg=monta"
+    "git+https://github.com/nickknissen/hass-monta.git@main#subdirectory=monta-python&egg=monta"
   ],
   "version": "1.3.0"
 }
