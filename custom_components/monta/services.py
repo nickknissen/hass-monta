@@ -28,9 +28,7 @@ async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
         charge_point_id = service_call.data["charge_point_id"]
         _LOGGER.debug("Called stop charging for %s", charge_point_id)
 
-        if charge_point_coordinator.data[charge_point_id]["state"].startswith(
-            "busy"
-        ):
+        if charge_point_coordinator.data[charge_point_id].state.startswith("busy"):
             await charge_point_coordinator.async_stop_charge(charge_point_id)
             return
 
@@ -40,7 +38,7 @@ async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
         charge_point_id = service_call.data["charge_point_id"]
         _LOGGER.debug("Called start charging for %s", charge_point_id)
 
-        if charge_point_coordinator.data[charge_point_id]["state"] == "available":
+        if charge_point_coordinator.data[charge_point_id].state == "available":
             await charge_point_coordinator.async_start_charge(charge_point_id)
             return
 

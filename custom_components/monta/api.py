@@ -19,6 +19,7 @@ from .const import (
     STORAGE_REFRESH_EXPIRE_TIME,
     STORAGE_REFRESH_TOKEN,
 )
+from .models import Charge, ChargePoint, TokenResponse, Wallet, WalletTransaction
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class MontaApiClient:
 
         self._get_token_lock = asyncio.Lock()
 
-    async def async_request_token(self) -> any:
+    async def async_request_token(self) -> TokenResponse:
         """Obtain access token with clientId and secret."""
 
         response_json = await self._api_wrapper(
@@ -87,23 +88,23 @@ class MontaApiClient:
             data={"clientId": self._client_id, "clientSecret": self._client_secret},
         )
 
-        return response_json
+        return TokenResponse.from_dict(response_json)
 
     async def async_authenticate(self) -> str:
         """Obtain access token and store it in preferences."""
 
-        response_json = await self.async_request_token()
+        token_response = await self.async_request_token()
 
         await self._async_update_preferences(
-            response_json["accessToken"],
-            dt_util.parse_datetime(response_json["accessTokenExpirationDate"]),
-            response_json["refreshToken"],
-            dt_util.parse_datetime(response_json["refreshTokenExpirationDate"]),
+            token_response.access_token,
+            token_response.access_token_expiration_date,
+            token_response.refresh_token,
+            token_response.refresh_token_expiration_date,
         )
 
-        return response_json["accessToken"]
+        return token_response.access_token
 
-    async def async_get_charge_points(self) -> any:
+    async def async_get_charge_points(self) -> dict[int, ChargePoint]:
         """Get available charge points to the user."""
 
         access_token = await self.async_get_access_token()
@@ -115,12 +116,12 @@ class MontaApiClient:
         )
 
         return {
-            item["id"]: item
+            item["id"]: ChargePoint.from_dict(item)
             for item in response["data"]
             if item.get("serialNumber") is not None
         }
 
-    async def async_get_charges(self, charge_point_id: int) -> any:
+    async def async_get_charges(self, charge_point_id: int) -> list[Charge]:
         """Retrieve a list of charge."""
 
         access_token = await self.async_get_access_token()
@@ -137,7 +138,8 @@ class MontaApiClient:
             _LOGGER.warning("No charges found in response!")
             charges = []
 
-        return sorted(charges, key=lambda charge: -charge["id"])
+        charge_objects = [Charge.from_dict(charge) for charge in charges]
+        return sorted(charge_objects, key=lambda charge: -charge.id)
 
     async def async_start_charge(self, charge_point_id: int) -> any:
         """Start a charge."""
@@ -172,7 +174,7 @@ class MontaApiClient:
 
         return response
 
-    async def async_get_wallet_transactions(self) -> any:
+    async def async_get_wallet_transactions(self) -> list[WalletTransaction]:
         """Retrieve first page of wallet transactions."""
 
         access_token = await self.async_get_access_token()
@@ -189,9 +191,10 @@ class MontaApiClient:
             _LOGGER.warning("No transactions found in response!")
             transactions = []
 
-        return sorted(transactions, key=lambda transaction: -transaction["id"])
+        transaction_objects = [WalletTransaction.from_dict(tx) for tx in transactions]
+        return sorted(transaction_objects, key=lambda transaction: -transaction.id)
 
-    async def async_get_personal_wallet(self) -> any:
+    async def async_get_personal_wallet(self) -> Wallet:
         """Retrieve personal wallet information."""
 
         access_token = await self.async_get_access_token()
@@ -202,7 +205,7 @@ class MontaApiClient:
             headers={"authorization": f"Bearer {access_token}"},
         )
 
-        return response
+        return Wallet.from_dict(response)
 
     async def async_get_access_token(self) -> str:
         """Get access token."""
@@ -224,14 +227,16 @@ class MontaApiClient:
                     data=params,
                 )
 
+                token_response = TokenResponse.from_dict(response_json)
+
                 await self._async_update_preferences(
-                    response_json["accessToken"],
-                    dt_util.parse_datetime(response_json["accessTokenExpirationDate"]),
-                    response_json["refreshToken"],
-                    dt_util.parse_datetime(response_json["refreshTokenExpirationDate"]),
+                    token_response.access_token,
+                    token_response.access_token_expiration_date,
+                    token_response.refresh_token,
+                    token_response.refresh_token_expiration_date,
                 )
 
-                return response_json["accessToken"]
+                return token_response.access_token
 
             _LOGGER.debug("No token is valid, Requesting a new tokens")
             return await self.async_authenticate()

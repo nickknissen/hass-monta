@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 ENTITY_DESCRIPTIONS = (
     BinarySensorEntityDescription(
-        key="cablePluggedIn",
+        key="cable_plugged_in",
         name="Cable Plugged In",
         device_class=BinarySensorDeviceClass.PLUG,
     ),
@@ -68,6 +68,6 @@ class MontaBinarySensor(MontaEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary_sensor is on."""
-        return self.coordinator.data[self.charge_point_id].get(
-            self.entity_description.key, False
-        )
+        charge_point = self.coordinator.data[self.charge_point_id]
+        # Get the attribute by name from the ChargePoint DTO
+        return getattr(charge_point, self.entity_description.key, False)
