@@ -31,15 +31,14 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 @pytest.fixture(name="mock_monta_client")
 def mock_monta_client_fixture() -> Generator[MagicMock]:
     """Mock MontaApiClient."""
-    with patch(
-        "custom_components.monta.config_flow.MontaApiClient", autospec=True
-    ) as mock_client, patch(
-        "custom_components.monta.MontaApiClient", autospec=True
+    with (
+        patch(
+            "custom_components.monta.config_flow.MontaApiClient", autospec=True
+        ) as mock_client,
+        patch("custom_components.monta.MontaApiClient", autospec=True),
     ):
         client = mock_client.return_value
-        client.async_request_token = AsyncMock(
-            return_value=MagicMock(user_id=123)
-        )
+        client.async_request_token = AsyncMock(return_value=MagicMock(user_id=123))
         client.async_get_charge_points = AsyncMock(return_value={})
         client.async_get_personal_wallet = AsyncMock(return_value=None)
         client.async_get_wallet_transactions = AsyncMock(return_value=[])

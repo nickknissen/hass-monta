@@ -37,6 +37,7 @@ from .coordinator import (
 from .entity import MontaEntity
 from .utils import snake_case
 
+
 @dataclass
 class MontaSensorEntityDescriptionMixin:
     """Mixin for required keys."""

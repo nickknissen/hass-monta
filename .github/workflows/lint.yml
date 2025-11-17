@@ -2,28 +2,53 @@ name: "Lint"
 
 on:
   push:
-    branches:
-      - "main"
+    branches: ["main"]
   pull_request:
-    branches:
-      - "main"
+    branches: ["main"]
 
 jobs:
-  ruff:
-    name: "Ruff"
-    runs-on: "ubuntu-latest"
+  ruff-check:
+    name: "Ruff Check"
+    runs-on: ubuntu-latest
     steps:
-        - name: "Checkout the repository"
-          uses: "actions/checkout@v5.0.0"
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: "Set up Python"
-          uses: actions/setup-python@v6.0.0
-          with:
-            python-version: "3.12"
-            cache: "pip"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
-        - name: "Install requirements"
-          run: python3 -m pip install -r requirements.txt
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-        - name: "Run"
-          run: python3 -m ruff check .
+      - name: Install dependencies
+        run: |
+          source $HOME/.cargo/env
+          uv pip install --system -e ".[dev]"
+
+      - name: Run ruff check
+        run: ruff check .
+
+  ruff-format:
+    name: "Ruff Format"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: |
+          source $HOME/.cargo/env
+          uv pip install --system -e ".[dev]"
+
+      - name: Run ruff format check
+        run: ruff format --check .

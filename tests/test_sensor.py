@@ -17,9 +17,7 @@ async def test_charge_point_sensors(
     hass: HomeAssistant, mock_monta_client: MagicMock, mock_charge_point: MagicMock
 ) -> None:
     """Test charge point sensors are created correctly."""
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     from homeassistant.config_entries import ConfigEntry
 

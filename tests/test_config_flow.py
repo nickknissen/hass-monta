@@ -27,7 +27,9 @@ from custom_components.monta.const import (
 )
 
 
-async def test_user_flow_success(hass: HomeAssistant, mock_monta_client: MagicMock) -> None:
+async def test_user_flow_success(
+    hass: HomeAssistant, mock_monta_client: MagicMock
+) -> None:
     """Test successful user flow."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -65,8 +67,8 @@ async def test_user_flow_authentication_error(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    mock_monta_client.async_request_token.side_effect = MontaApiClientAuthenticationError(
-        "Invalid credentials"
+    mock_monta_client.async_request_token.side_effect = (
+        MontaApiClientAuthenticationError("Invalid credentials")
     )
 
     with patch(
@@ -93,8 +95,8 @@ async def test_user_flow_communication_error(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    mock_monta_client.async_request_token.side_effect = MontaApiClientCommunicationError(
-        "Connection failed"
+    mock_monta_client.async_request_token.side_effect = (
+        MontaApiClientCommunicationError("Connection failed")
     )
 
     with patch(
@@ -121,7 +123,9 @@ async def test_user_flow_unknown_error(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    mock_monta_client.async_request_token.side_effect = MontaApiClientError("Unknown error")
+    mock_monta_client.async_request_token.side_effect = MontaApiClientError(
+        "Unknown error"
+    )
 
     with patch(
         "custom_components.monta.config_flow.MontaApiClient",
@@ -236,8 +240,8 @@ async def test_options_flow_authentication_error(
 
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
 
-    mock_monta_client.async_request_token.side_effect = MontaApiClientAuthenticationError(
-        "Invalid credentials"
+    mock_monta_client.async_request_token.side_effect = (
+        MontaApiClientAuthenticationError("Invalid credentials")
     )
 
     with patch(

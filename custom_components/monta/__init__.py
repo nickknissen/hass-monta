@@ -3,6 +3,7 @@
 For more details about this integration, please refer to
 https://github.com/nickknissen/hass-monta
 """
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -64,7 +65,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # This allows users to customize polling frequency per data type
     scan_interval_charge_points = entry.options.get(
         CONF_SCAN_INTERVAL_CHARGE_POINTS,
-        entry.data.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+        entry.data.get(
+            CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS
+        ),
     )
     scan_interval_wallet = entry.options.get(
         CONF_SCAN_INTERVAL_WALLET,
@@ -72,7 +75,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     scan_interval_transactions = entry.options.get(
         CONF_SCAN_INTERVAL_TRANSACTIONS,
-        entry.data.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+        entry.data.get(
+            CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS
+        ),
     )
 
     # Create API client shared by all coordinators

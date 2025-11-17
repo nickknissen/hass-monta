@@ -25,9 +25,7 @@ async def test_charge_point_coordinator_update_success(
     hass: HomeAssistant, mock_monta_client: MagicMock, mock_charge_point: MagicMock
 ) -> None:
     """Test successful charge point coordinator update."""
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     coordinator = MontaChargePointCoordinator(
         hass=hass, client=mock_monta_client, scan_interval=120

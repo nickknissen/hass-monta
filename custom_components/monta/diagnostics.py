@@ -74,7 +74,9 @@ async def async_get_config_entry_diagnostics(
                 "firmware_version": charge_point.firmware_version,
                 "cable_plugged_in": charge_point.cable_plugged_in,
                 "last_meter_reading_kwh": charge_point.last_meter_reading_kwh,
-                "charges_count": len(charge_point.charges) if charge_point.charges else 0,
+                "charges_count": len(charge_point.charges)
+                if charge_point.charges
+                else 0,
             }
             charge_points_info.append(charge_point_info)
         diagnostics_data["charge_points"] = charge_points_info

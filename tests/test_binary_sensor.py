@@ -17,9 +17,7 @@ async def test_binary_sensor_cable_plugged_in_false(
 ) -> None:
     """Test binary sensor when cable is not plugged in."""
     mock_charge_point.cable_plugged_in = False
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     from homeassistant.config_entries import ConfigEntry
 
@@ -56,9 +54,7 @@ async def test_binary_sensor_cable_plugged_in_true(
 ) -> None:
     """Test binary sensor when cable is plugged in."""
     mock_charge_point.cable_plugged_in = True
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     from homeassistant.config_entries import ConfigEntry
 
@@ -94,9 +90,7 @@ async def test_binary_sensor_entity_registry(
     hass: HomeAssistant, mock_monta_client: MagicMock, mock_charge_point: MagicMock
 ) -> None:
     """Test binary sensor is registered in entity registry."""
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     from homeassistant.config_entries import ConfigEntry
 

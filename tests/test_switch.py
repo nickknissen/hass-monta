@@ -19,9 +19,7 @@ async def test_switch_turn_on(
 ) -> None:
     """Test turning on the switch."""
     mock_charge_point.state = ChargerStatus.AVAILABLE
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
     mock_monta_client.async_start_charge = AsyncMock()
 
     from homeassistant.config_entries import ConfigEntry
@@ -65,13 +63,9 @@ async def test_switch_turn_off(
 ) -> None:
     """Test turning off the switch."""
     mock_charge_point.state = ChargerStatus.BUSY_CHARGING
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
     mock_monta_client.async_stop_charge = AsyncMock()
-    mock_monta_client.async_get_charges = AsyncMock(
-        return_value=[MagicMock(id=999)]
-    )
+    mock_monta_client.async_get_charges = AsyncMock(return_value=[MagicMock(id=999)])
 
     from homeassistant.config_entries import ConfigEntry
 
@@ -115,9 +109,7 @@ async def test_switch_is_on_when_charging(
 ) -> None:
     """Test switch is on when charger is charging."""
     mock_charge_point.state = ChargerStatus.BUSY_CHARGING
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     from homeassistant.config_entries import ConfigEntry
 
@@ -154,9 +146,7 @@ async def test_switch_is_off_when_available(
 ) -> None:
     """Test switch is off when charger is available."""
     mock_charge_point.state = ChargerStatus.AVAILABLE
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     from homeassistant.config_entries import ConfigEntry
 
@@ -193,9 +183,7 @@ async def test_switch_unavailable_when_disconnected(
 ) -> None:
     """Test switch is unavailable when charger is disconnected."""
     mock_charge_point.state = ChargerStatus.DISCONNECTED
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     from homeassistant.config_entries import ConfigEntry
 
@@ -232,9 +220,7 @@ async def test_switch_unavailable_when_error(
 ) -> None:
     """Test switch is unavailable when charger has error."""
     mock_charge_point.state = ChargerStatus.ERROR
-    mock_monta_client.async_get_charge_points.return_value = {
-        12345: mock_charge_point
-    }
+    mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
     from homeassistant.config_entries import ConfigEntry
 
