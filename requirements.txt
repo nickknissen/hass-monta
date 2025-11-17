@@ -3,3 +3,4 @@ homeassistant==2024.12.5
 ruff==0.14.4
 pip>=21.0,<25.4
 debugpy==1.8.17
+monta==1.0.3
