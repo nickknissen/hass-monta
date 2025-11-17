@@ -18,6 +18,7 @@ env/
 # uv
 .uv/
 uv.lock
+.cache/
 
 # Testing
 .pytest*

@@ -4,4 +4,25 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-python3 -m pip install --requirement requirements.txt
+echo "🔧 Setting up development environment..."
+
+# Check if uv is available
+if command -v uv &> /dev/null; then
+    echo "📦 Installing dependencies with uv (fast!)..."
+
+    # Use sudo if we're in a dev container (non-root user installing to system)
+    if [ -n "$REMOTE_CONTAINERS" ] || [ -n "$CODESPACES" ] || [ "$USER" != "root" ]; then
+        sudo uv pip install --system -e ".[dev,test]"
+    else
+        uv pip install --system -e ".[dev,test]"
+    fi
+
+    echo "✅ Setup complete! Dependencies installed with uv."
+else
+    echo "📦 Installing dependencies with pip..."
+    python3 -m pip install --upgrade pip
+    python3 -m pip install -r requirements.txt
+    echo "✅ Setup complete! Dependencies installed with pip."
+    echo "💡 Tip: Install uv for 10-100x faster installations:"
+    echo "   curl -LsSf https://astral.sh/uv/install.sh | sh"
+fi

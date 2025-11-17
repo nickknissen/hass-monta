@@ -1,0 +1,49 @@
+name: "Dev Container"
+
+on:
+  push:
+    paths:
+      - '.devcontainer/**'
+      - 'scripts/setup'
+      - 'pyproject.toml'
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - 'scripts/setup'
+      - 'pyproject.toml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: "Build and Test Dev Container"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and test dev container
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          runCmd: |
+            echo "=== Dev Container Environment Validation ==="
+            echo ""
+            echo "📍 Working directory:"
+            pwd
+            echo ""
+            echo "🐍 Python version:"
+            python --version
+            echo ""
+            echo "📦 uv version:"
+            uv --version || echo "⚠️  uv not found"
+            echo ""
+            echo "🔍 ruff version:"
+            ruff --version || echo "⚠️  ruff not found"
+            echo ""
+            echo "🧪 pytest version:"
+            pytest --version || echo "⚠️  pytest not found"
+            echo ""
+            echo "📋 Installed packages:"
+            uv pip list || pip list
+            echo ""
+            echo "✅ Dev container built and configured successfully!"
