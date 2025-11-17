@@ -27,6 +27,7 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
     Attributes:
         config_entry: The config entry associated with this coordinator
         client: MontaApiClient instance for API communication
+
     """
 
     config_entry: ConfigEntry
@@ -43,6 +44,7 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
             hass: Home Assistant instance
             client: MontaApiClient for API communication
             scan_interval: Update interval in seconds
+
         """
         self.client = client
         super().__init__(
@@ -65,6 +67,7 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         Raises:
             ConfigEntryAuthFailed: When authentication fails (triggers re-auth)
             UpdateFailed: When API communication fails
+
         """
         try:
             # Fetch all charge points for the authenticated user
