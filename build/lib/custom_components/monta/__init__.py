@@ -93,19 +93,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass=hass,
         client=client,
         scan_interval=scan_interval_charge_points,
-        config_entry=entry,
     )
     wallet_coordinator = MontaWalletCoordinator(
         hass=hass,
         client=client,
         scan_interval=scan_interval_wallet,
-        config_entry=entry,
     )
     transaction_coordinator = MontaTransactionCoordinator(
         hass=hass,
         client=client,
         scan_interval=scan_interval_transactions,
-        config_entry=entry,
     )
 
     # Store coordinators in a dictionary

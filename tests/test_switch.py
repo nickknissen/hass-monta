@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import STATE_OFF, STATE_ON
@@ -20,11 +21,7 @@ async def test_switch_turn_on(
     mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
     mock_monta_client.async_start_charge = AsyncMock()
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -34,11 +31,7 @@ async def test_switch_turn_on(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -68,11 +61,7 @@ async def test_switch_turn_off(
     mock_monta_client.async_stop_charge = AsyncMock()
     mock_monta_client.async_get_charges = AsyncMock(return_value=[MagicMock(id=999)])
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -82,11 +71,7 @@ async def test_switch_turn_off(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -115,11 +100,7 @@ async def test_switch_is_on_when_charging(
     mock_charge_point.state = ChargerStatus.BUSY_CHARGING
     mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -129,11 +110,7 @@ async def test_switch_is_on_when_charging(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -155,11 +132,7 @@ async def test_switch_is_off_when_available(
     mock_charge_point.state = ChargerStatus.AVAILABLE
     mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -169,11 +142,7 @@ async def test_switch_is_off_when_available(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -195,11 +164,7 @@ async def test_switch_unavailable_when_disconnected(
     mock_charge_point.state = ChargerStatus.DISCONNECTED
     mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -209,11 +174,7 @@ async def test_switch_unavailable_when_disconnected(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -235,11 +196,7 @@ async def test_switch_unavailable_when_error(
     mock_charge_point.state = ChargerStatus.ERROR
     mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -249,11 +206,7 @@ async def test_switch_unavailable_when_error(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 

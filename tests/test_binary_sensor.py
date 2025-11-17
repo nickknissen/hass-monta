@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
@@ -18,11 +19,7 @@ async def test_binary_sensor_cable_plugged_in_false(
     mock_charge_point.cable_plugged_in = False
     mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -32,11 +29,7 @@ async def test_binary_sensor_cable_plugged_in_false(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -58,11 +51,7 @@ async def test_binary_sensor_cable_plugged_in_true(
     mock_charge_point.cable_plugged_in = True
     mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -72,11 +61,7 @@ async def test_binary_sensor_cable_plugged_in_true(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -97,11 +82,7 @@ async def test_binary_sensor_entity_registry(
     """Test binary sensor is registered in entity registry."""
     mock_monta_client.async_get_charge_points.return_value = {12345: mock_charge_point}
 
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data={
@@ -111,11 +92,7 @@ async def test_binary_sensor_entity_registry(
             "scan_interval_wallet": 600,
             "scan_interval_transactions": 600,
         },
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 

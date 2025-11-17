@@ -9,6 +9,7 @@ from monta import (
     MontaApiClientCommunicationError,
     MontaApiClientError,
 )
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
@@ -146,19 +147,11 @@ async def test_options_flow_success(
     hass: HomeAssistant, mock_monta_client: MagicMock, mock_config_entry: dict
 ) -> None:
     """Test successful options flow."""
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data=mock_config_entry,
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -189,19 +182,11 @@ async def test_options_flow_credential_change(
     hass: HomeAssistant, mock_monta_client: MagicMock, mock_config_entry: dict
 ) -> None:
     """Test options flow with credential changes."""
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data=mock_config_entry,
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -230,19 +215,11 @@ async def test_options_flow_authentication_error(
     hass: HomeAssistant, mock_monta_client: MagicMock, mock_config_entry: dict
 ) -> None:
     """Test options flow with authentication error when changing credentials."""
-    from homeassistant.config_entries import ConfigEntry
-
-    config_entry = ConfigEntry(
-        version=1,
-        minor_version=1,
+    config_entry = MockConfigEntry(
         domain=DOMAIN,
         title="Monta account 123",
         data=mock_config_entry,
-        source="user",
         unique_id="test_unique_id",
-        discovery_keys={},
-        options={},
-        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 

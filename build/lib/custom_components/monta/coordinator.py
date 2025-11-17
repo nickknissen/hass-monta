@@ -37,7 +37,6 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         hass: HomeAssistant,
         client: MontaApiClient,
         scan_interval: int,
-        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the charge point coordinator.
 
@@ -45,7 +44,6 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
             hass: Home Assistant instance
             client: MontaApiClient for API communication
             scan_interval: Update interval in seconds
-            config_entry: The config entry for this coordinator
 
         """
         self.client = client
@@ -54,7 +52,6 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
             logger=LOGGER,
             name=f"{DOMAIN}_charge_points",
             update_interval=timedelta(seconds=scan_interval),
-            config_entry=config_entry,
         )
 
     async def _async_update_data(self):
@@ -118,7 +115,6 @@ class MontaWalletCoordinator(DataUpdateCoordinator):
         hass: HomeAssistant,
         client: MontaApiClient,
         scan_interval: int,
-        config_entry: ConfigEntry,
     ) -> None:
         """Initialize."""
         self.client = client
@@ -127,7 +123,6 @@ class MontaWalletCoordinator(DataUpdateCoordinator):
             logger=LOGGER,
             name=f"{DOMAIN}_wallet",
             update_interval=timedelta(seconds=scan_interval),
-            config_entry=config_entry,
         )
 
     async def _async_update_data(self):
@@ -150,7 +145,6 @@ class MontaTransactionCoordinator(DataUpdateCoordinator):
         hass: HomeAssistant,
         client: MontaApiClient,
         scan_interval: int,
-        config_entry: ConfigEntry,
     ) -> None:
         """Initialize."""
         self.client = client
@@ -159,7 +153,6 @@ class MontaTransactionCoordinator(DataUpdateCoordinator):
             logger=LOGGER,
             name=f"{DOMAIN}_transactions",
             update_interval=timedelta(seconds=scan_interval),
-            config_entry=config_entry,
         )
 
     async def _async_update_data(self):
