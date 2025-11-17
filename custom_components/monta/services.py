@@ -32,14 +32,14 @@ async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
         # Check if charge point exists
         if charge_point_id not in charge_point_coordinator.data:
-            raise HomeAssistantError(
-                f"Charge point {charge_point_id} not found"
-            )
+            raise HomeAssistantError(f"Charge point {charge_point_id} not found")
 
         charge_point_state = charge_point_coordinator.data[charge_point_id].state
         if charge_point_state.startswith("busy"):
             await charge_point_coordinator.async_stop_charge(charge_point_id)
-            _LOGGER.info("Successfully stopped charging for charge point %s", charge_point_id)
+            _LOGGER.info(
+                "Successfully stopped charging for charge point %s", charge_point_id
+            )
             return
 
         raise HomeAssistantError(
@@ -53,14 +53,14 @@ async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
         # Check if charge point exists
         if charge_point_id not in charge_point_coordinator.data:
-            raise HomeAssistantError(
-                f"Charge point {charge_point_id} not found"
-            )
+            raise HomeAssistantError(f"Charge point {charge_point_id} not found")
 
         charge_point_state = charge_point_coordinator.data[charge_point_id].state
         if charge_point_state == "available":
             await charge_point_coordinator.async_start_charge(charge_point_id)
-            _LOGGER.info("Successfully started charging for charge point %s", charge_point_id)
+            _LOGGER.info(
+                "Successfully started charging for charge point %s", charge_point_id
+            )
             return
 
         raise HomeAssistantError(
