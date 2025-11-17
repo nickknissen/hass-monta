@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -37,7 +38,7 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> Any:
         """Update charge point data via library."""
         try:
             charge_points = await self.client.async_get_charge_points()
@@ -51,7 +52,7 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         except MontaApiClientError as exception:
             raise UpdateFailed(exception) from exception
 
-    async def async_start_charge(self, charge_point_id: int):
+    async def async_start_charge(self, charge_point_id: int) -> Any:
         """Start a charge."""
         try:
             return await self.client.async_start_charge(charge_point_id)
@@ -60,7 +61,7 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         except MontaApiClientError as exception:
             raise UpdateFailed(exception) from exception
 
-    async def async_stop_charge(self, charge_point_id: int):
+    async def async_stop_charge(self, charge_point_id: int) -> Any:
         """Stop a charge."""
         charges = await self.client.async_get_charges(charge_point_id)
         try:
@@ -91,7 +92,7 @@ class MontaWalletCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> Any:
         """Update wallet data via library."""
         try:
             return await self.client.async_get_personal_wallet()
@@ -121,7 +122,7 @@ class MontaTransactionCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> Any:
         """Update transaction data via library."""
         try:
             return await self.client.async_get_wallet_transactions()

@@ -43,7 +43,7 @@ class MontaSensorEntityDescriptionMixin:
     """Mixin for required keys."""
 
     value_fn: Callable[[Any], StateType]
-    extra_state_attributes_fn: Callable[[Any], dict[str, str]] | None
+    extra_state_attributes_fn: Callable[[Any], dict[str, Any] | None] | None
 
 
 @dataclass
@@ -53,12 +53,12 @@ class MontaSensorEntityDescription(
     """Describes MontaSensor sensor entity."""
 
 
-def last_charge_state(data: ChargePoint) -> str:
+def last_charge_state(data: ChargePoint) -> str | None:
     """Process state for last charge (if available)."""
     return data.charges[0].state if len(data.charges) > 0 else None
 
 
-def last_charge_extra_attributes(data: ChargePoint) -> dict[str, Any]:
+def last_charge_extra_attributes(data: ChargePoint) -> dict[str, Any] | None:
     """Process extra attributes for last charge (if available)."""
     if data.charges:
         # Convert the Charge object back to dict for Home Assistant attributes
@@ -67,7 +67,7 @@ def last_charge_extra_attributes(data: ChargePoint) -> dict[str, Any]:
     return None
 
 
-def wallet_credit_extra_attribute(data: Wallet) -> dict[str, Any]:
+def wallet_credit_extra_attribute(data: Wallet) -> dict[str, Any] | None:
     """Process extra attributes for last charge (if available)."""
     if data.balance:
         return {"credit": data.balance.credit}
@@ -219,12 +219,12 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
         )
 
     @property
-    def extra_attributes(self) -> str:
+    def extra_attributes(self) -> None:
         """Return extra attributes for the sensor."""
         return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, str] | None:
+    def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return the state attributes."""
         if self.entity_description.extra_state_attributes_fn:
             return self.entity_description.extra_state_attributes_fn(
@@ -260,6 +260,7 @@ class MontaWalletSensor(CoordinatorEntity[MontaWalletCoordinator], SensorEntity)
         """Return the unit of measurement of the sensor."""
         if self.coordinator.data and self.coordinator.data.currency:
             return self.coordinator.data.currency.identifier.upper()
+        return None
 
     @property
     def native_value(self) -> StateType:
@@ -267,12 +268,12 @@ class MontaWalletSensor(CoordinatorEntity[MontaWalletCoordinator], SensorEntity)
         return self.entity_description.value_fn(self.coordinator.data)
 
     @property
-    def extra_attributes(self) -> str:
+    def extra_attributes(self) -> None:
         """Return extra attributes for the sensor."""
         return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, str] | None:
+    def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return the state attributes."""
         if self.entity_description.extra_state_attributes_fn:
             return self.entity_description.extra_state_attributes_fn(
@@ -314,14 +315,14 @@ class MontaTransactionsSensor(
         return transactions[0].state
 
     @property
-    def extra_attributes(self) -> str:
+    def extra_attributes(self) -> None:
         """Return extra attributes for the sensor."""
         return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, str] | None:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Converts the dates to correct home assitant format."""
-        attributes = {}
+        attributes: dict[str, Any] = {}
 
         if data := self.coordinator.data:
             # Convert WalletTransaction objects to dicts for Home Assistant attributes
