@@ -22,6 +22,7 @@ from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from monta import ChargePoint, Wallet, WalletTransaction
 
 from .const import (
     ATTRIBUTION,
@@ -34,7 +35,6 @@ from .coordinator import (
     MontaTransactionCoordinator,
 )
 from .entity import MontaEntity
-from .models import ChargePoint, Wallet, WalletTransaction
 from .utils import snake_case
 
 @dataclass
