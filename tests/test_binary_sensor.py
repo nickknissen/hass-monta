@@ -34,6 +34,9 @@ async def test_binary_sensor_cable_plugged_in_false(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -71,6 +74,9 @@ async def test_binary_sensor_cable_plugged_in_true(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -107,6 +113,9 @@ async def test_binary_sensor_entity_registry(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 

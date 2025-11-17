@@ -33,6 +33,9 @@ async def test_charge_point_sensors(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -87,6 +90,9 @@ async def test_wallet_sensor(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -132,6 +138,9 @@ async def test_transaction_sensor(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 

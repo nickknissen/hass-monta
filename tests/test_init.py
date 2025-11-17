@@ -23,6 +23,9 @@ async def test_setup_entry_success(
         data=mock_config_entry,
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -49,6 +52,9 @@ async def test_unload_entry(
         data=mock_config_entry,
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -77,6 +83,9 @@ async def test_reload_entry(
         data=mock_config_entry,
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 

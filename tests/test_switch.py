@@ -36,6 +36,9 @@ async def test_switch_turn_on(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -81,6 +84,9 @@ async def test_switch_turn_off(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -125,6 +131,9 @@ async def test_switch_is_on_when_charging(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -162,6 +171,9 @@ async def test_switch_is_off_when_available(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -199,6 +211,9 @@ async def test_switch_unavailable_when_disconnected(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -236,6 +251,9 @@ async def test_switch_unavailable_when_error(
         },
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 

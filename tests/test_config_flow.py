@@ -156,6 +156,9 @@ async def test_options_flow_success(
         data=mock_config_entry,
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -196,6 +199,9 @@ async def test_options_flow_credential_change(
         data=mock_config_entry,
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
@@ -234,6 +240,9 @@ async def test_options_flow_authentication_error(
         data=mock_config_entry,
         source="user",
         unique_id="test_unique_id",
+        discovery_keys={},
+        options={},
+        subentries_data={},
     )
     config_entry.add_to_hass(hass)
 
