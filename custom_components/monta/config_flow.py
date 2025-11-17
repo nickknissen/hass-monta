@@ -7,13 +7,14 @@ from homeassistant.const import CONF_CLIENT_SECRET, CONF_CLIENT_ID
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.storage import Store
-
-from .api import (
+from monta import (
     MontaApiClient,
     MontaApiClientAuthenticationError,
     MontaApiClientCommunicationError,
     MontaApiClientError,
 )
+
+from .api import HomeAssistantTokenStorage
 from .const import (
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
     CONF_SCAN_INTERVAL_WALLET,
@@ -136,7 +137,9 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             client_id=client_id,
             client_secret=client_secret,
             session=async_create_clientsession(self.hass),
-            store=Store(self.hass, STORAGE_VERSION, STORAGE_KEY),
+            token_storage=HomeAssistantTokenStorage(
+                Store(self.hass, STORAGE_VERSION, STORAGE_KEY)
+            ),
         )
         return await client.async_request_token()
 
@@ -228,6 +231,8 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
             client_id=client_id,
             client_secret=client_secret,
             session=async_create_clientsession(self.hass),
-            store=Store(self.hass, STORAGE_VERSION, STORAGE_KEY),
+            token_storage=HomeAssistantTokenStorage(
+                Store(self.hass, STORAGE_VERSION, STORAGE_KEY)
+            ),
         )
         return await client.async_request_token()

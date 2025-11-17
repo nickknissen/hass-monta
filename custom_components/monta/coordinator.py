@@ -8,8 +8,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from monta import (
+    MontaApiClient,
+    MontaApiClientAuthenticationError,
+    MontaApiClientError,
+)
 
-from .api import MontaApiClient, MontaApiClientAuthenticationError, MontaApiClientError
 from .const import DOMAIN, LOGGER
 
 
