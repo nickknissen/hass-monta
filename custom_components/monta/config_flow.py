@@ -1,6 +1,8 @@
 """Adds config flow for Monta."""
 from __future__ import annotations
 
+from typing import Any
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_CLIENT_SECRET, CONF_CLIENT_ID
@@ -131,7 +133,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Get the options flow for this handler."""
         return MontaOptionsFlowHandler(config_entry)
 
-    async def _test_credentials(self, client_id: str, client_secret: str) -> any:
+    async def _test_credentials(self, client_id: str, client_secret: str) -> Any:
         """Validate credentials."""
         client = MontaApiClient(
             client_id=client_id,
@@ -221,7 +223,7 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
             errors=_errors,
         )
 
-    async def _test_credentials(self, client_id: str, client_secret: str) -> any:
+    async def _test_credentials(self, client_id: str, client_secret: str) -> Any:
         """Validate credentials."""
         client = MontaApiClient(
             client_id=client_id,

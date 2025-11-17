@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.switch import (
     ENTITY_ID_FORMAT,
     SwitchEntity,
@@ -27,8 +29,8 @@ ENTITY_DESCRIPTIONS = (
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
-):
-    """Set up the sensor platform."""
+) -> None:
+    """Set up the switch platform."""
     coordinators = hass.data[DOMAIN][entry.entry_id]
     charge_point_coordinator = coordinators["charge_point"]
 
@@ -46,7 +48,9 @@ async def async_setup_entry(
 
 
 class MontaSwitch(MontaEntity, SwitchEntity):
-    """monta switch class."""
+    """Monta switch class for controlling charge point charging."""
+
+    _local_state: bool | None
 
     def __init__(
         self,
@@ -89,13 +93,13 @@ class MontaSwitch(MontaEntity, SwitchEntity):
             ChargerStatus.BUSY_SCHEDULED,
         }
 
-    async def async_turn_on(self, **_: any) -> None:
+    async def async_turn_on(self, **_: Any) -> None:
         """Start charger."""
         await self.coordinator.async_start_charge(self.charge_point_id)
         self._local_state = True
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **_: any) -> None:
+    async def async_turn_off(self, **_: Any) -> None:
         """Stop charger."""
         await self.coordinator.async_stop_charge(self.charge_point_id)
         self._local_state = False
