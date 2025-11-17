@@ -14,7 +14,7 @@ from monta import (
     MontaApiClientError,
 )
 
-from .api import HomeAssistantTokenStorage
+from .storage import HomeAssistantTokenStorage
 from .const import (
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
     CONF_SCAN_INTERVAL_WALLET,

@@ -1,24 +1,11 @@
-"""API module for monta."""
+"""Token storage implementation for Home Assistant."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from homeassistant.helpers.storage import Store
-from monta import (
-    TokenStorage,
-    MontaApiClientError,
-    MontaApiClientAuthenticationError,
-    MontaApiClientCommunicationError,
-)
-
-# Re-export exceptions for backward compatibility
-__all__ = [
-    "HomeAssistantTokenStorage",
-    "MontaApiClientError",
-    "MontaApiClientAuthenticationError",
-    "MontaApiClientCommunicationError",
-]
+from monta import TokenStorage
 
 
 class HomeAssistantTokenStorage(TokenStorage):

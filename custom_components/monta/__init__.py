@@ -12,7 +12,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from monta import MontaApiClient
 
-from .api import HomeAssistantTokenStorage
+from .storage import HomeAssistantTokenStorage
 from .const import (
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
     CONF_SCAN_INTERVAL_WALLET,
