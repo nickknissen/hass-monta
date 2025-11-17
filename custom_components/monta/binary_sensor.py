@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import logging
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.binary_sensor import (
     ENTITY_ID_FORMAT,
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import MontaChargePointCoordinator
@@ -28,7 +31,9 @@ ENTITY_DESCRIPTIONS = (
 )
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
+) -> None:
     """Set up the binary_sensor platform."""
     coordinators = hass.data[DOMAIN][entry.entry_id]
     charge_point_coordinator = coordinators["charge_point"]

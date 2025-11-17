@@ -18,7 +18,16 @@ from .const import DOMAIN, LOGGER
 
 
 class MontaChargePointCoordinator(DataUpdateCoordinator):
-    """Coordinator for charge point data."""
+    """Coordinator for charge point data.
+
+    This coordinator manages data updates for Monta charge points, including
+    their status, meter readings, and recent charging sessions. It handles
+    API communication and automatic re-authentication when needed.
+
+    Attributes:
+        config_entry: The config entry associated with this coordinator
+        client: MontaApiClient instance for API communication
+    """
 
     config_entry: ConfigEntry
 
@@ -28,7 +37,13 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         client: MontaApiClient,
         scan_interval: int,
     ) -> None:
-        """Initialize."""
+        """Initialize the charge point coordinator.
+
+        Args:
+            hass: Home Assistant instance
+            client: MontaApiClient for API communication
+            scan_interval: Update interval in seconds
+        """
         self.client = client
         super().__init__(
             hass=hass,
@@ -38,17 +53,33 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         )
 
     async def _async_update_data(self):
-        """Update charge point data via library."""
+        """Update charge point data via library.
+
+        Fetches all charge points and their recent charges from the Monta API.
+        Handles authentication errors by triggering a re-authentication flow,
+        and other API errors by marking the update as failed.
+
+        Returns:
+            Dictionary of charge points keyed by charge point ID
+
+        Raises:
+            ConfigEntryAuthFailed: When authentication fails (triggers re-auth)
+            UpdateFailed: When API communication fails
+        """
         try:
+            # Fetch all charge points for the authenticated user
             charge_points = await self.client.async_get_charge_points()
+            # For each charge point, fetch recent charging sessions
             for charge_point_id in charge_points:
                 charge_points[charge_point_id].charges = (
                     await self.client.async_get_charges(charge_point_id)
                 )
             return charge_points
         except MontaApiClientAuthenticationError as exception:
+            # Trigger re-authentication flow in Home Assistant
             raise ConfigEntryAuthFailed(exception) from exception
         except MontaApiClientError as exception:
+            # Mark update as failed, will retry on next interval
             raise UpdateFailed(exception) from exception
 
     async def async_start_charge(self, charge_point_id: int):

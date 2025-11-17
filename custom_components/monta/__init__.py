@@ -40,13 +40,27 @@ PLATFORMS: list[Platform] = [
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up this integration using UI."""
+    """Set up this integration using UI.
+
+    This function initializes the Monta integration by creating three separate
+    coordinators for different data types (charge points, wallet, and transactions).
+    Each coordinator has its own configurable scan interval to optimize API usage.
+
+    Args:
+        hass: Home Assistant instance
+        entry: Config entry containing integration configuration
+
+    Returns:
+        True if setup was successful
+    """
     hass.data.setdefault(DOMAIN, {})
 
+    # Initialize token storage for OAuth authentication
     store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
     await store.async_remove()
 
-    # Get individual scan intervals for each data type
+    # Get individual scan intervals for each data type from options or data
+    # This allows users to customize polling frequency per data type
     scan_interval_charge_points = entry.options.get(
         CONF_SCAN_INTERVAL_CHARGE_POINTS,
         entry.data.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),

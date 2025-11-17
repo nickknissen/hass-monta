@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.components.switch import (
     ENTITY_ID_FORMAT,
     SwitchEntity,
@@ -89,13 +91,13 @@ class MontaSwitch(MontaEntity, SwitchEntity):
             ChargerStatus.BUSY_SCHEDULED,
         }
 
-    async def async_turn_on(self, **_: any) -> None:
+    async def async_turn_on(self, **_: Any) -> None:
         """Start charger."""
         await self.coordinator.async_start_charge(self.charge_point_id)
         self._local_state = True
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **_: any) -> None:
+    async def async_turn_off(self, **_: Any) -> None:
         """Stop charger."""
         await self.coordinator.async_stop_charge(self.charge_point_id)
         self._local_state = False
