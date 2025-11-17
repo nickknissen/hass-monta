@@ -10,8 +10,9 @@ from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from monta import MontaApiClient
 
-from .api import MontaApiClient
+from .storage import HomeAssistantTokenStorage
 from .const import (
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
     CONF_SCAN_INTERVAL_WALLET,
@@ -64,7 +65,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         client_id=entry.data[CONF_CLIENT_ID],
         client_secret=entry.data[CONF_CLIENT_SECRET],
         session=async_get_clientsession(hass),
-        store=store,
+        token_storage=HomeAssistantTokenStorage(store),
     )
 
     # Create separate coordinators for each data type
