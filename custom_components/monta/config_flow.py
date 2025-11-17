@@ -113,7 +113,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _errors["base"] = "unknown"
             else:
                 return self.async_create_entry(
-                    title=f"Monta account {response['userId']}",
+                    title=f"Monta account {response.user_id}",
                     data=user_input,
                 )
 

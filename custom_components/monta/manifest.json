@@ -12,5 +12,8 @@
   "loggers": [
     "custom_components.monta"
   ],
+  "requirements": [
+    "monta==1.0.3"
+  ],
   "version": "1.3.0"
 }
