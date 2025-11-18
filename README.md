@@ -45,8 +45,8 @@ Platform | Description
 ### Manual installation
 1. Using your tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 1. If you do not have a `custom_components` directory (folder) there, you need to create it.
-1. In the `custom_components` directory (folder) create a new folder called `monta`.
-1. Download _all_ of the files from the `custom_components/monta/` directory [here](https://github.com/nickknissen/hass-monta/tree/main/custom_components/monta), in this repository.
+1. In the `custom_components` directory (folder) create a new folder called `hass_monta`.
+1. Download _all_ of the files from the `custom_components/hass_monta/` directory [here](https://github.com/nickknissen/hass-monta/tree/main/custom_components/hass_monta), in this repository.
 1. Place the files you downloaded into the new directory (folder) you created.
 1. Restart Home Assistant
 1. In the HA UI go to "Configuration" -> "Integrations", click "+", and search for "Monta"

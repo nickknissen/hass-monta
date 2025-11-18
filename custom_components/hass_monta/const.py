@@ -6,7 +6,7 @@ from logging import Logger, getLogger
 LOGGER: Logger = getLogger(__package__)
 
 NAME = "Monta"
-DOMAIN = "monta"
+DOMAIN = "hass_monta"
 VERSION = "0.0.0"
 ATTRIBUTION = "Data provided by https://docs.public-api.monta.com"
 
