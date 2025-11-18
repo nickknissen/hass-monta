@@ -321,7 +321,7 @@ class MontaTransactionsSensor(
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Converts the dates to correct home assitant format."""
+        """Converts the dates to correct home assistant format."""
         attributes: dict[str, Any] = {}
 
         if data := self.coordinator.data:
