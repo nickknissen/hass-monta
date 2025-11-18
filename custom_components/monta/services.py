@@ -6,6 +6,7 @@ from collections.abc import Awaitable, Callable
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 
@@ -25,24 +26,46 @@ async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
     charge_point_coordinator = coordinators["charge_point"]
 
     async def service_handle_stop_charging(service_call: ServiceCall) -> None:
+        """Handle the stop charging service call."""
         charge_point_id = service_call.data["charge_point_id"]
         _LOGGER.debug("Called stop charging for %s", charge_point_id)
 
-        if charge_point_coordinator.data[charge_point_id].state.startswith("busy"):
+        # Check if charge point exists
+        if charge_point_id not in charge_point_coordinator.data:
+            raise HomeAssistantError(f"Charge point {charge_point_id} not found")
+
+        charge_point_state = charge_point_coordinator.data[charge_point_id].state
+        if charge_point_state.startswith("busy"):
             await charge_point_coordinator.async_stop_charge(charge_point_id)
+            _LOGGER.info(
+                "Successfully stopped charging for charge point %s", charge_point_id
+            )
             return
 
-        raise vol.Invalid("Charger not currently charging")
+        raise HomeAssistantError(
+            f"Cannot stop charging: Charger is in state '{charge_point_state}' (must be charging)"
+        )
 
     async def service_handle_start_charging(service_call: ServiceCall) -> None:
+        """Handle the start charging service call."""
         charge_point_id = service_call.data["charge_point_id"]
         _LOGGER.debug("Called start charging for %s", charge_point_id)
 
-        if charge_point_coordinator.data[charge_point_id].state == "available":
+        # Check if charge point exists
+        if charge_point_id not in charge_point_coordinator.data:
+            raise HomeAssistantError(f"Charge point {charge_point_id} not found")
+
+        charge_point_state = charge_point_coordinator.data[charge_point_id].state
+        if charge_point_state == "available":
             await charge_point_coordinator.async_start_charge(charge_point_id)
+            _LOGGER.info(
+                "Successfully started charging for charge point %s", charge_point_id
+            )
             return
 
-        raise vol.Invalid("Charger not currently charging")
+        raise HomeAssistantError(
+            f"Cannot start charging: Charger is in state '{charge_point_state}' (must be available)"
+        )
 
     # LIST OF SERVICES
     services: list[tuple[str, vol.Schema, TServiceHandler]] = [

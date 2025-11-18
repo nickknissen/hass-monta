@@ -1,5 +1,8 @@
 """Adds config flow for Monta."""
+
 from __future__ import annotations
+
+from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -37,21 +40,20 @@ def build_schema(defaults: dict) -> vol.Schema:
                 CONF_CLIENT_ID,
                 default=defaults.get(CONF_CLIENT_ID),
             ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.TEXT
-                ),
+                selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT),
             ),
             vol.Required(
                 CONF_CLIENT_SECRET,
                 default=defaults.get(CONF_CLIENT_SECRET),
             ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.PASSWORD
-                ),
+                selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD),
             ),
             vol.Optional(
                 CONF_SCAN_INTERVAL_CHARGE_POINTS,
-                default=defaults.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+                default=defaults.get(
+                    CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                    DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
+                ),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=30,
@@ -62,7 +64,9 @@ def build_schema(defaults: dict) -> vol.Schema:
             ),
             vol.Optional(
                 CONF_SCAN_INTERVAL_WALLET,
-                default=defaults.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+                default=defaults.get(
+                    CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET
+                ),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=30,
@@ -73,7 +77,9 @@ def build_schema(defaults: dict) -> vol.Schema:
             ),
             vol.Optional(
                 CONF_SCAN_INTERVAL_TRANSACTIONS,
-                default=defaults.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+                default=defaults.get(
+                    CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS
+                ),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=30,
@@ -131,7 +137,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Get the options flow for this handler."""
         return MontaOptionsFlowHandler(config_entry)
 
-    async def _test_credentials(self, client_id: str, client_secret: str) -> any:
+    async def _test_credentials(self, client_id: str, client_secret: str) -> Any:
         """Validate credentials."""
         client = MontaApiClient(
             client_id=client_id,
@@ -154,9 +160,10 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
         _errors = {}
         if user_input is not None:
             # Only validate credentials if they were changed
-            if (
-                user_input.get(CONF_CLIENT_ID) != self.config_entry.data.get(CONF_CLIENT_ID)
-                or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(CONF_CLIENT_SECRET)
+            if user_input.get(CONF_CLIENT_ID) != self.config_entry.data.get(
+                CONF_CLIENT_ID
+            ) or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(
+                CONF_CLIENT_SECRET
             ):
                 try:
                     await self._test_credentials(
@@ -175,18 +182,27 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
 
             if not _errors:
                 # Update the config entry data with new credentials if they changed
-                if (
-                    user_input.get(CONF_CLIENT_ID) != self.config_entry.data.get(CONF_CLIENT_ID)
-                    or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(CONF_CLIENT_SECRET)
+                if user_input.get(CONF_CLIENT_ID) != self.config_entry.data.get(
+                    CONF_CLIENT_ID
+                ) or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(
+                    CONF_CLIENT_SECRET
                 ):
                     self.hass.config_entries.async_update_entry(
                         self.config_entry,
                         data={
                             CONF_CLIENT_ID: user_input[CONF_CLIENT_ID],
                             CONF_CLIENT_SECRET: user_input[CONF_CLIENT_SECRET],
-                            CONF_SCAN_INTERVAL_CHARGE_POINTS: user_input.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
-                            CONF_SCAN_INTERVAL_WALLET: user_input.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
-                            CONF_SCAN_INTERVAL_TRANSACTIONS: user_input.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+                            CONF_SCAN_INTERVAL_CHARGE_POINTS: user_input.get(
+                                CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                                DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
+                            ),
+                            CONF_SCAN_INTERVAL_WALLET: user_input.get(
+                                CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET
+                            ),
+                            CONF_SCAN_INTERVAL_TRANSACTIONS: user_input.get(
+                                CONF_SCAN_INTERVAL_TRANSACTIONS,
+                                DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
+                            ),
                         },
                     )
                 return self.async_create_entry(title="", data=user_input)
@@ -203,15 +219,22 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
             ),
             CONF_SCAN_INTERVAL_CHARGE_POINTS: self.config_entry.options.get(
                 CONF_SCAN_INTERVAL_CHARGE_POINTS,
-                self.config_entry.data.get(CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS),
+                self.config_entry.data.get(
+                    CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                    DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
+                ),
             ),
             CONF_SCAN_INTERVAL_WALLET: self.config_entry.options.get(
                 CONF_SCAN_INTERVAL_WALLET,
-                self.config_entry.data.get(CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET),
+                self.config_entry.data.get(
+                    CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET
+                ),
             ),
             CONF_SCAN_INTERVAL_TRANSACTIONS: self.config_entry.options.get(
                 CONF_SCAN_INTERVAL_TRANSACTIONS,
-                self.config_entry.data.get(CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS),
+                self.config_entry.data.get(
+                    CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS
+                ),
             ),
         }
 
@@ -221,7 +244,7 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
             errors=_errors,
         )
 
-    async def _test_credentials(self, client_id: str, client_secret: str) -> any:
+    async def _test_credentials(self, client_id: str, client_secret: str) -> Any:
         """Validate credentials."""
         client = MontaApiClient(
             client_id=client_id,

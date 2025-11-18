@@ -13,6 +13,7 @@ from monta import (
     MontaApiClientAuthenticationError,
     MontaApiClientError,
 )
+from monta.models import Charge, ChargePoint, Wallet, WalletTransaction
 
 from .const import DOMAIN, LOGGER
 
@@ -37,21 +38,21 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> dict[int, ChargePoint]:
         """Update charge point data via library."""
         try:
             charge_points = await self.client.async_get_charge_points()
             for charge_point_id in charge_points:
-                charge_points[charge_point_id].charges = (
-                    await self.client.async_get_charges(charge_point_id)
-                )
+                charge_points[
+                    charge_point_id
+                ].charges = await self.client.async_get_charges(charge_point_id)
             return charge_points
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except MontaApiClientError as exception:
             raise UpdateFailed(exception) from exception
 
-    async def async_start_charge(self, charge_point_id: int):
+    async def async_start_charge(self, charge_point_id: int) -> Charge:
         """Start a charge."""
         try:
             return await self.client.async_start_charge(charge_point_id)
@@ -60,10 +61,14 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         except MontaApiClientError as exception:
             raise UpdateFailed(exception) from exception
 
-    async def async_stop_charge(self, charge_point_id: int):
+    async def async_stop_charge(self, charge_point_id: int) -> Charge:
         """Stop a charge."""
-        charges = await self.client.async_get_charges(charge_point_id)
         try:
+            charges = await self.client.async_get_charges(charge_point_id)
+            if not charges:
+                raise UpdateFailed(
+                    f"No active charges found for charge point {charge_point_id}"
+                )
             return await self.client.async_stop_charge(charges[0].id)
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
@@ -91,7 +96,7 @@ class MontaWalletCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> Wallet:
         """Update wallet data via library."""
         try:
             return await self.client.async_get_personal_wallet()
@@ -121,7 +126,7 @@ class MontaTransactionCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> list[WalletTransaction]:
         """Update transaction data via library."""
         try:
             return await self.client.async_get_wallet_transactions()
