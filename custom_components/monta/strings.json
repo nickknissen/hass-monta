@@ -2,10 +2,10 @@
 	"config": {
 		"step": {
 			"user": {
-				"description": "👉 Monta Public API is in BETA currently.\nIn order to obtain client id/Client secret to it, you might have to opt-in to their Beta program. This can be done in your user account settings in the app or in Monta's CPMS. \n\nClient id and secret are obtained from https://portal2.monta.app/applications.",
+				"description": "In order to obtain an access token for our endpoints, you need to provide a Client ID and Client Secret. You can create them in CPMS: https://portal2.monta.app/",
 				"data": {
-					"client_id": "Client id",
-					"client_secret": "client secret",
+					"client_id": "Client ID",
+					"client_secret": "Client Secret",
 					"scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
 					"scan_interval_wallet": "Wallet Scan Interval (seconds)",
 					"scan_interval_transactions": "Transactions Scan Interval (seconds)"
@@ -18,7 +18,7 @@
 			}
 		},
 		"error": {
-			"auth": "Client id/client secret is wrong.",
+			"auth": "Client ID/Client Secret are invalid.",
 			"connection": "Unable to connect to the server.",
 			"unknown": "Unknown error occurred."
 		},
@@ -31,15 +31,15 @@
 			"init": {
 				"description": "Configure Monta integration options. You can update your credentials or adjust the scan intervals here.",
 				"data": {
-					"client_id": "Client id",
-					"client_secret": "Client secret",
+					"client_id": "Client ID",
+					"client_secret": "Client Secret",
 					"scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
 					"scan_interval_wallet": "Wallet Scan Interval (seconds)",
 					"scan_interval_transactions": "Transactions Scan Interval (seconds)"
 				},
 				"data_description": {
-					"client_id": "Your Monta API client ID from https://portal2.monta.app/applications",
-					"client_secret": "Your Monta API client secret from https://portal2.monta.app/applications",
+					"client_id": "Your Monta API Client ID from https://portal2.monta.app/applications",
+					"client_secret": "Your Monta API Client Secret from https://portal2.monta.app/applications",
 					"scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
 					"scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
 					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
@@ -47,7 +47,7 @@
 			}
 		},
 		"error": {
-			"auth": "Client id/client secret is wrong.",
+			"auth": "Client ID/Client Secret are invalid.",
 			"connection": "Unable to connect to the server.",
 			"unknown": "Unknown error occurred."
 		}
@@ -58,10 +58,9 @@
 			"name": "Start charging",
 			"fields": {
 				"charge_point_id": {
-					"name": "Charge point id",
+					"name": "Charge Point ID",
 					"description": "The ID of the charger."
 				}
-
 			}
 		},
 		"stop_charging": {
@@ -69,7 +68,7 @@
 			"name": "Stop charging",
 			"fields": {
 				"charge_point_id": {
-					"name": "Charge point id",
+					"name": "Charge Point ID",
 					"description": "The ID of the charger."
 				}
 			}
