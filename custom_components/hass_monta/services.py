@@ -1,7 +1,7 @@
 """Monta components services."""
 
 import logging
-from collections.abc import Awaitable, Callable
+from typing import Any
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
@@ -12,14 +12,11 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-TServiceHandler = Callable[[ServiceCall], Awaitable[None]]
-
 has_id_schema = vol.Schema({vol.Required("charge_point_id"): int})
 
 
 async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Set up services for the Monta component."""
-
     _LOGGER.debug("Set up services")
 
     coordinators = hass.data[DOMAIN][entry.entry_id]
@@ -32,18 +29,23 @@ async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
         # Check if charge point exists
         if charge_point_id not in charge_point_coordinator.data:
-            raise HomeAssistantError(f"Charge point {charge_point_id} not found")
+            msg = f"Charge point {charge_point_id} not found"
+            raise HomeAssistantError(msg)
 
         charge_point_state = charge_point_coordinator.data[charge_point_id].state
         if charge_point_state.startswith("busy"):
             await charge_point_coordinator.async_stop_charge(charge_point_id)
             _LOGGER.info(
-                "Successfully stopped charging for charge point %s", charge_point_id
+                "Successfully stopped charging for charge point %s",
+                charge_point_id,
             )
             return
 
-        raise HomeAssistantError(
-            f"Cannot stop charging: Charger is in state '{charge_point_state}' (must be charging)"
+        action = "stop"
+        raise state_error_message(
+            action,
+            charge_point_state,
+            "busy",
         )
 
     async def service_handle_start_charging(service_call: ServiceCall) -> None:
@@ -53,22 +55,38 @@ async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
         # Check if charge point exists
         if charge_point_id not in charge_point_coordinator.data:
-            raise HomeAssistantError(f"Charge point {charge_point_id} not found")
+            msg = f"Charge point {charge_point_id} not found"
+            raise HomeAssistantError(msg)
 
         charge_point_state = charge_point_coordinator.data[charge_point_id].state
         if charge_point_state == "available":
             await charge_point_coordinator.async_start_charge(charge_point_id)
             _LOGGER.info(
-                "Successfully started charging for charge point %s", charge_point_id
+                "Successfully started charging for charge point %s",
+                charge_point_id,
             )
             return
 
-        raise HomeAssistantError(
-            f"Cannot start charging: Charger is in state '{charge_point_state}' (must be available)"
+        action = "start"
+        raise state_error_message(
+            action,
+            charge_point_state,
+            "available",
         )
 
+    def state_error_message(
+        action: str,
+        charge_point_state: str,
+        expected_state: str,
+    ) -> HomeAssistantError:
+        msg = (
+            f"Cannot {action} charging. "
+            f"Charger is in state '{charge_point_state}'. Expected: {expected_state}"
+        )
+        return HomeAssistantError(msg)
+
     # LIST OF SERVICES
-    services: list[tuple[str, vol.Schema, TServiceHandler]] = [
+    services: list[tuple[str, vol.Schema, Any]] = [
         ("start_charging", has_id_schema, service_handle_start_charging),
         ("stop_charging", has_id_schema, service_handle_stop_charging),
     ]

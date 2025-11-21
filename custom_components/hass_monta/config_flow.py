@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_CLIENT_SECRET, CONF_CLIENT_ID
+from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.storage import Store
@@ -17,19 +17,22 @@ from monta import (
     MontaApiClientError,
 )
 
-from .storage import HomeAssistantTokenStorage
 from .const import (
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
-    CONF_SCAN_INTERVAL_WALLET,
     CONF_SCAN_INTERVAL_TRANSACTIONS,
+    CONF_SCAN_INTERVAL_WALLET,
     DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
-    DEFAULT_SCAN_INTERVAL_WALLET,
     DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
+    DEFAULT_SCAN_INTERVAL_WALLET,
     DOMAIN,
     LOGGER,
     STORAGE_KEY,
     STORAGE_VERSION,
 )
+from .storage import HomeAssistantTokenStorage
+
+if TYPE_CHECKING:
+    from monta.models import TokenResponse
 
 
 def build_schema(defaults: dict) -> vol.Schema:
@@ -65,7 +68,8 @@ def build_schema(defaults: dict) -> vol.Schema:
             vol.Optional(
                 CONF_SCAN_INTERVAL_WALLET,
                 default=defaults.get(
-                    CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET
+                    CONF_SCAN_INTERVAL_WALLET,
+                    DEFAULT_SCAN_INTERVAL_WALLET,
                 ),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
@@ -78,7 +82,8 @@ def build_schema(defaults: dict) -> vol.Schema:
             vol.Optional(
                 CONF_SCAN_INTERVAL_TRANSACTIONS,
                 default=defaults.get(
-                    CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS
+                    CONF_SCAN_INTERVAL_TRANSACTIONS,
+                    DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
                 ),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
@@ -88,7 +93,7 @@ def build_schema(defaults: dict) -> vol.Schema:
                     mode=selector.NumberSelectorMode.BOX,
                 ),
             ),
-        }
+        },
     )
 
 
@@ -132,19 +137,21 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
+        config_entry: config_entries.ConfigEntry,  # noqa: ARG004
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
-        return MontaOptionsFlowHandler(config_entry)
+        return MontaOptionsFlowHandler()
 
-    async def _test_credentials(self, client_id: str, client_secret: str) -> Any:
+    async def _test_credentials(
+        self, client_id: str, client_secret: str,
+    ) -> TokenResponse:
         """Validate credentials."""
         client = MontaApiClient(
             client_id=client_id,
             client_secret=client_secret,
             session=async_create_clientsession(self.hass),
             token_storage=HomeAssistantTokenStorage(
-                Store(self.hass, STORAGE_VERSION, STORAGE_KEY)
+                Store(self.hass, STORAGE_VERSION, STORAGE_KEY),
             ),
         )
         return await client.async_request_token()
@@ -154,16 +161,17 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Monta."""
 
     async def async_step_init(
-        self, user_input: dict | None = None
+        self,
+        user_input: dict | None = None,
     ) -> config_entries.FlowResult:
         """Manage the options."""
         _errors = {}
         if user_input is not None:
             # Only validate credentials if they were changed
             if user_input.get(CONF_CLIENT_ID) != self.config_entry.data.get(
-                CONF_CLIENT_ID
+                CONF_CLIENT_ID,
             ) or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(
-                CONF_CLIENT_SECRET
+                CONF_CLIENT_SECRET,
             ):
                 try:
                     await self._test_credentials(
@@ -183,9 +191,9 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
             if not _errors:
                 # Update the config entry data with new credentials if they changed
                 if user_input.get(CONF_CLIENT_ID) != self.config_entry.data.get(
-                    CONF_CLIENT_ID
+                    CONF_CLIENT_ID,
                 ) or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(
-                    CONF_CLIENT_SECRET
+                    CONF_CLIENT_SECRET,
                 ):
                     self.hass.config_entries.async_update_entry(
                         self.config_entry,
@@ -197,7 +205,8 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                                 DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
                             ),
                             CONF_SCAN_INTERVAL_WALLET: user_input.get(
-                                CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET
+                                CONF_SCAN_INTERVAL_WALLET,
+                                DEFAULT_SCAN_INTERVAL_WALLET,
                             ),
                             CONF_SCAN_INTERVAL_TRANSACTIONS: user_input.get(
                                 CONF_SCAN_INTERVAL_TRANSACTIONS,
@@ -227,13 +236,15 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_SCAN_INTERVAL_WALLET: self.config_entry.options.get(
                 CONF_SCAN_INTERVAL_WALLET,
                 self.config_entry.data.get(
-                    CONF_SCAN_INTERVAL_WALLET, DEFAULT_SCAN_INTERVAL_WALLET
+                    CONF_SCAN_INTERVAL_WALLET,
+                    DEFAULT_SCAN_INTERVAL_WALLET,
                 ),
             ),
             CONF_SCAN_INTERVAL_TRANSACTIONS: self.config_entry.options.get(
                 CONF_SCAN_INTERVAL_TRANSACTIONS,
                 self.config_entry.data.get(
-                    CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS
+                    CONF_SCAN_INTERVAL_TRANSACTIONS,
+                    DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
                 ),
             ),
         }
@@ -244,14 +255,16 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
             errors=_errors,
         )
 
-    async def _test_credentials(self, client_id: str, client_secret: str) -> Any:
+    async def _test_credentials(
+        self, client_id: str, client_secret: str,
+    ) -> TokenResponse:
         """Validate credentials."""
         client = MontaApiClient(
             client_id=client_id,
             client_secret=client_secret,
             session=async_create_clientsession(self.hass),
             token_storage=HomeAssistantTokenStorage(
-                Store(self.hass, STORAGE_VERSION, STORAGE_KEY)
+                Store(self.hass, STORAGE_VERSION, STORAGE_KEY),
             ),
         )
         return await client.async_request_token()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from homeassistant.components.binary_sensor import (
     ENTITY_ID_FORMAT,
@@ -10,15 +11,18 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .coordinator import MontaChargePointCoordinator
 from .entity import MontaEntity
 from .utils import snake_case
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+    from .coordinator import MontaChargePointCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +53,7 @@ async def async_setup_entry(
                     charge_point_id=charge_point_id,
                 )
                 for entity_description in ENTITY_DESCRIPTIONS
-            ]
+            ],
         )
 
 
@@ -69,7 +73,7 @@ class MontaBinarySensor(MontaEntity, BinarySensorEntity):
         self._attr_unique_id = generate_entity_id(
             ENTITY_ID_FORMAT,
             f"{charge_point_id}_{snake_case(entity_description.key)}",
-            [charge_point_id],
+            [str(charge_point_id)],
         )
 
     @property
