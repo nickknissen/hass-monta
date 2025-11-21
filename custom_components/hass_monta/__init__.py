@@ -6,31 +6,35 @@ https://github.com/nickknissen/hass-monta
 
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
+from typing import TYPE_CHECKING
+
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET, Platform
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.storage import Store
 from monta import MontaApiClient
 
-from .storage import HomeAssistantTokenStorage
 from .const import (
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
-    CONF_SCAN_INTERVAL_WALLET,
     CONF_SCAN_INTERVAL_TRANSACTIONS,
+    CONF_SCAN_INTERVAL_WALLET,
     DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
-    DEFAULT_SCAN_INTERVAL_WALLET,
     DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
+    DEFAULT_SCAN_INTERVAL_WALLET,
     DOMAIN,
     STORAGE_KEY,
     STORAGE_VERSION,
 )
 from .coordinator import (
     MontaChargePointCoordinator,
-    MontaWalletCoordinator,
     MontaTransactionCoordinator,
+    MontaWalletCoordinator,
 )
 from .services import async_setup_services
+from .storage import HomeAssistantTokenStorage
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
@@ -51,7 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     scan_interval_charge_points = entry.options.get(
         CONF_SCAN_INTERVAL_CHARGE_POINTS,
         entry.data.get(
-            CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS
+            CONF_SCAN_INTERVAL_CHARGE_POINTS, DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
         ),
     )
     scan_interval_wallet = entry.options.get(
@@ -61,7 +65,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     scan_interval_transactions = entry.options.get(
         CONF_SCAN_INTERVAL_TRANSACTIONS,
         entry.data.get(
-            CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS
+            CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
         ),
     )
 

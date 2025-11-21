@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
@@ -13,16 +12,11 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     UnitOfEnergy,
 )
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import generate_entity_id
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from monta import ChargePoint, Wallet, WalletTransaction
 
 from .const import (
     ATTRIBUTION,
@@ -31,11 +25,20 @@ from .const import (
 )
 from .coordinator import (
     MontaChargePointCoordinator,
-    MontaWalletCoordinator,
     MontaTransactionCoordinator,
+    MontaWalletCoordinator,
 )
 from .entity import MontaEntity
 from .utils import snake_case
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.typing import StateType
+    from monta import ChargePoint, Wallet, WalletTransaction
 
 
 @dataclass
@@ -48,7 +51,7 @@ class MontaSensorEntityDescriptionMixin:
 
 @dataclass
 class MontaSensorEntityDescription(
-    SensorEntityDescription, MontaSensorEntityDescriptionMixin
+    SensorEntityDescription, MontaSensorEntityDescriptionMixin,
 ):
     """Describes MontaSensor sensor entity."""
 
@@ -156,7 +159,7 @@ TRANSACTION_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
     coordinators = hass.data[DOMAIN][entry.entry_id]
@@ -174,31 +177,33 @@ async def async_setup_entry(
                     charge_point_id,
                 )
                 for description in CHARGE_POINT_ENTITY_DESCRIPTIONS
-            ]
+            ],
         )
 
     async_add_entities(
         [
             MontaWalletSensor(wallet_coordinator, entry, description)
             for description in WALLET_ENTITY_DESCRIPTIONS
-        ]
+        ],
     )
     async_add_entities(
         [
             MontaTransactionsSensor(transaction_coordinator, entry, description)
             for description in TRANSACTION_ENTITY_DESCRIPTIONS
-        ]
+        ],
     )
 
 
 class MontaChargePointSensor(MontaEntity, SensorEntity):
     """monta Sensor class."""
 
+    entity_description: MontaSensorEntityDescription
+
     def __init__(
         self,
         coordinator: MontaChargePointCoordinator,
         _: ConfigEntry,
-        entity_description: SensorEntityDescription,
+        entity_description: MontaSensorEntityDescription,
         charge_point_id: int,
     ) -> None:
         """Initialize the sensor class."""
@@ -208,14 +213,14 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
         self._attr_unique_id = generate_entity_id(
             ENTITY_ID_FORMAT,
             f"{charge_point_id}_{snake_case(entity_description.key)}",
-            [charge_point_id],
+            [str(charge_point_id)],
         )
 
     @property
     def native_value(self) -> StateType:
         """Return the state."""
         return self.entity_description.value_fn(
-            self.coordinator.data[self.charge_point_id]
+            self.coordinator.data[self.charge_point_id],
         )
 
     @property
@@ -228,7 +233,7 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
         """Return the state attributes."""
         if self.entity_description.extra_state_attributes_fn:
             return self.entity_description.extra_state_attributes_fn(
-                self.coordinator.data[self.charge_point_id]
+                self.coordinator.data[self.charge_point_id],
             )
         return None
 
@@ -238,12 +243,13 @@ class MontaWalletSensor(CoordinatorEntity[MontaWalletCoordinator], SensorEntity)
 
     _attr_attribution = ATTRIBUTION
     _attr_has_entity_name = True
+    entity_description: MontaSensorEntityDescription
 
     def __init__(
         self,
         coordinator: MontaWalletCoordinator,
         _: ConfigEntry,
-        entity_description: SensorEntityDescription,
+        entity_description: MontaSensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(coordinator)
@@ -252,7 +258,7 @@ class MontaWalletSensor(CoordinatorEntity[MontaWalletCoordinator], SensorEntity)
         self._attr_unique_id = generate_entity_id(
             ENTITY_ID_FORMAT,
             f"monta_{snake_case(entity_description.key)}",
-            "personal_monta_wallet",
+            ["personal_monta_wallet"],
         )
 
     @property
@@ -277,24 +283,25 @@ class MontaWalletSensor(CoordinatorEntity[MontaWalletCoordinator], SensorEntity)
         """Return the state attributes."""
         if self.entity_description.extra_state_attributes_fn:
             return self.entity_description.extra_state_attributes_fn(
-                self.coordinator.data
+                self.coordinator.data,
             )
         return None
 
 
 class MontaTransactionsSensor(
-    CoordinatorEntity[MontaTransactionCoordinator], SensorEntity
+    CoordinatorEntity[MontaTransactionCoordinator], SensorEntity,
 ):
     """monta Sensor class."""
 
     _attr_attribution = ATTRIBUTION
     _attr_has_entity_name = True
+    entity_description: MontaSensorEntityDescription
 
     def __init__(
         self,
         coordinator: MontaTransactionCoordinator,
         _: ConfigEntry,
-        entity_description: SensorEntityDescription,
+        entity_description: MontaSensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(coordinator)
@@ -303,7 +310,7 @@ class MontaTransactionsSensor(
         self._attr_unique_id = generate_entity_id(
             ENTITY_ID_FORMAT,
             f"monta_{snake_case(entity_description.key)}",
-            "monta_latest_transactions",
+            ["monta_latest_transactions"],
         )
 
     @property

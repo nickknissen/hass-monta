@@ -14,9 +14,10 @@ class MontaEntity(CoordinatorEntity[MontaChargePointCoordinator]):
 
     _attr_attribution = ATTRIBUTION
     _attr_has_entity_name = True
+    charge_point_id: int
 
     def __init__(
-        self, coordinator: MontaChargePointCoordinator, charge_point_id: int
+        self, coordinator: MontaChargePointCoordinator, charge_point_id: int,
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
@@ -30,8 +31,8 @@ class MontaEntity(CoordinatorEntity[MontaChargePointCoordinator]):
             identifiers={
                 (
                     DOMAIN,
-                    self.charge_point_id,
-                )
+                    str(self.charge_point_id),
+                ),
             },
             name=f"Monta - {chargepoint.name}",
             manufacturer=chargepoint.brand_name,
