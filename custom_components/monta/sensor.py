@@ -92,7 +92,7 @@ def wallet_extra_attributes(data: list[WalletTransaction]) -> dict[str, Any]:
 CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_visibility",
-        name="Visibility",
+        translation_key="charger_visibility",
         icon="mdi:eye",
         device_class=SensorDeviceClass.ENUM,
         options=["public", "private"],
@@ -101,7 +101,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     ),
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_type",
-        name="Type",
+        translation_key="charger_type",
         icon="mdi:current-ac",
         device_class=SensorDeviceClass.ENUM,
         options=["ac", "dc"],
@@ -110,7 +110,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     ),
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_state",
-        name="State",
+        translation_key="charger_state",
         icon="mdi:state-machine",
         device_class=SensorDeviceClass.ENUM,
         options=[x.value for x in ChargerStatus],
@@ -119,7 +119,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     ),
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charger_lastMeterReadingKwh",
-        name="Last meter reading",
+        translation_key="charger_lastmeterreadingkwh",
         icon="mdi:wallet",
         device_class=SensorDeviceClass.ENERGY,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
@@ -129,7 +129,7 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     ),
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
         key="charge_state",
-        name="Last Charge",
+        translation_key="charge_state",
         icon="mdi:ev-station",
         value_fn=last_charge_state,
         extra_state_attributes_fn=last_charge_extra_attributes,
