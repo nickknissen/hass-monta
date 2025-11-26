@@ -14,7 +14,7 @@
     "monta"
   ],
   "requirements": [
-    "monta==1.0.3"
+    "monta==1.0.4"
   ],
   "version": "1.3.0"
 }
