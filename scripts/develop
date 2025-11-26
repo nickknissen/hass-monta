@@ -13,9 +13,9 @@ fi
 # Create custom_components directory in config if it doesn't exist
 mkdir -p "${PWD}/config/custom_components"
 
-# Create symlink to hass_monta integration
-if [[ ! -L "${PWD}/config/custom_components/hass_monta" ]]; then
-    ln -sf "${PWD}/custom_components/hass_monta" "${PWD}/config/custom_components/hass_monta"
+# Create symlink to monta integration
+if [[ ! -L "${PWD}/config/custom_components/monta" ]]; then
+    ln -sf "${PWD}/custom_components/monta" "${PWD}/config/custom_components/monta"
 fi
 
 # Start Home Assistant

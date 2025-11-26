@@ -21,15 +21,15 @@ jobs:
         shell: "bash"
         run: |
           yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
-            "${{ github.workspace }}/custom_components/hass_monta/manifest.json"
+            "${{ github.workspace }}/custom_components/monta/manifest.json"
 
       - name: "ZIP the integration directory"
         shell: "bash"
         run: |
-          cd "${{ github.workspace }}/custom_components/hass_monta"
-          zip hass_monta.zip -r ./
+          cd "${{ github.workspace }}/custom_components/monta"
+          zip monta.zip -r ./
 
       - name: "Upload the ZIP file to the release"
         uses: softprops/action-gh-release@v2.4.2
         with:
-          files: ${{ github.workspace }}/custom_components/hass_monta/hass_monta.zip
+          files: ${{ github.workspace }}/custom_components/monta/monta.zip
