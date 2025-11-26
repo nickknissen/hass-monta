@@ -1,77 +1,125 @@
 {
-	"config": {
-		"step": {
-			"user": {
-				"description": "In order to obtain an access token for our endpoints, you need to provide a Client ID and Client Secret. You can create them in CPMS: https://portal2.monta.app/",
-				"data": {
-					"client_id": "Client ID",
-					"client_secret": "Client Secret",
-					"scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
-					"scan_interval_wallet": "Wallet Scan Interval (seconds)",
-					"scan_interval_transactions": "Transactions Scan Interval (seconds)"
-				},
-				"data_description": {
-					"scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
-					"scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
-					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
-				}
-			}
-		},
-		"error": {
-			"auth": "Client ID/Client Secret are invalid.",
-			"connection": "Unable to connect to the server.",
-			"unknown": "Unknown error occurred."
-		},
-		"abort": {
-			"already_configured": "Device is already configured"
-		}
-	},
-	"options": {
-		"step": {
-			"init": {
-				"description": "Configure Monta integration options. You can update your credentials or adjust the scan intervals here.",
-				"data": {
-					"client_id": "Client ID",
-					"client_secret": "Client Secret",
-					"scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
-					"scan_interval_wallet": "Wallet Scan Interval (seconds)",
-					"scan_interval_transactions": "Transactions Scan Interval (seconds)"
-				},
-				"data_description": {
-					"client_id": "Your Monta API Client ID from https://portal2.monta.app/applications",
-					"client_secret": "Your Monta API Client Secret from https://portal2.monta.app/applications",
-					"scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
-					"scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
-					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
-				}
-			}
-		},
-		"error": {
-			"auth": "Client ID/Client Secret are invalid.",
-			"connection": "Unable to connect to the server.",
-			"unknown": "Unknown error occurred."
-		}
-	},
-	"services": {
-		"start_charging": {
-			"description": "Start charge on selected charger",
-			"name": "Start charging",
-			"fields": {
-				"charge_point_id": {
-					"name": "Charge Point ID",
-					"description": "The ID of the charger."
-				}
-			}
-		},
-		"stop_charging": {
-			"description": "Stop charge on selected charger.",
-			"name": "Stop charging",
-			"fields": {
-				"charge_point_id": {
-					"name": "Charge Point ID",
-					"description": "The ID of the charger."
-				}
-			}
-		}
-	}
+  "config": {
+    "step": {
+      "user": {
+        "description": "In order to obtain an access token for our endpoints, you need to provide a Client ID and Client Secret. You can create them in CPMS: https://portal2.monta.app/",
+        "data": {
+          "client_id": "Client ID",
+          "client_secret": "Client Secret",
+          "scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
+          "scan_interval_wallet": "Wallet Scan Interval (seconds)",
+          "scan_interval_transactions": "Transactions Scan Interval (seconds)"
+        },
+        "data_description": {
+          "scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
+          "scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
+          "scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
+        }
+      }
+    },
+    "error": {
+      "auth": "Client ID/Client Secret are invalid.",
+      "connection": "Unable to connect to the server.",
+      "unknown": "Unknown error occurred."
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Configure Monta integration options. You can update your credentials or adjust the scan intervals here.",
+        "data": {
+          "client_id": "Client ID",
+          "client_secret": "Client Secret",
+          "scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
+          "scan_interval_wallet": "Wallet Scan Interval (seconds)",
+          "scan_interval_transactions": "Transactions Scan Interval (seconds)"
+        },
+        "data_description": {
+          "client_id": "Your Monta API Client ID from https://portal2.monta.app/applications",
+          "client_secret": "Your Monta API Client Secret from https://portal2.monta.app/applications",
+          "scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
+          "scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
+          "scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
+        }
+      }
+    },
+    "error": {
+      "auth": "Client ID/Client Secret are invalid.",
+      "connection": "Unable to connect to the server.",
+      "unknown": "Unknown error occurred."
+    }
+  },
+  "services": {
+    "start_charging": {
+      "description": "Start charge on selected charger",
+      "name": "Start charging",
+      "fields": {
+        "charge_point_id": {
+          "name": "Charge Point ID",
+          "description": "The ID of the charger."
+        }
+      }
+    },
+    "stop_charging": {
+      "description": "Stop charge on selected charger.",
+      "name": "Stop charging",
+      "fields": {
+        "charge_point_id": {
+          "name": "Charge Point ID",
+          "description": "The ID of the charger."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "charger_visibility": {
+        "name": "Visibility",
+        "state": {
+          "public": "Public",
+          "private": "Private"
+        }
+      },
+      "charger_type": {
+        "name": "Type",
+        "state": {
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charger_state": {
+        "name": "State",
+        "state": {
+          "available": "Available",
+          "busy": "Busy",
+          "busy-blocked": "Busy - Blocked",
+          "busy-charging": "Busy - Charging",
+          "busy-non-charging": "Busy - Non Charging",
+          "busy-non-released": "Busy - Non Released",
+          "busy-reserved": "Busy - Reserved",
+          "busy-scheduled": "Busy - Scheduled",
+          "error": "Error",
+          "disconnected": "Disconnected",
+          "passive": "Passive",
+          "other": "Other"
+        }
+      },
+      "charger_lastmeterreadingkwh": {
+        "name": "Last Meter Reading"
+      },
+      "charge_state": {
+        "name": "Last Charge",
+        "state": {
+          "pending": "Pending",
+          "active": "Active",
+          "completed": "Completed",
+          "failed": "Failed",
+          "cancelled": "Cancelled"
+        }
+      }
+    }
+  }
 }

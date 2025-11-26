@@ -65,5 +65,53 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "charger_visibility": {
+        "name": "Visibilidade",
+        "state": {
+          "public": "Público",
+          "private": "Privado"
+        }
+      },
+      "charger_type": {
+        "name": "Tipo",
+        "state": {
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charger_state": {
+        "name": "Estado",
+        "state": {
+          "available": "Disponível",
+          "busy": "Ocupado",
+          "busy-blocked": "Ocupado - Bloqueado",
+          "busy-charging": "Ocupado - Carregando",
+          "busy-non-charging": "Ocupado - Sem Carregamento",
+          "busy-non-released": "Ocupado - Não Liberado",
+          "busy-reserved": "Ocupado - Reservado",
+          "busy-scheduled": "Ocupado - Agendado",
+          "error": "Erro",
+          "disconnected": "Desconectado",
+          "passive": "Passivo",
+          "other": "Outro"
+        }
+      },
+      "charger_lastmeterreadingkwh": {
+        "name": "Última Leitura do Medidor"
+      },
+      "charge_state": {
+        "name": "Último Carregamento",
+        "state": {
+          "pending": "Pendente",
+          "active": "Ativo",
+          "completed": "Concluído",
+          "failed": "Falhou",
+          "cancelled": "Cancelado"
+        }
+      }
+    }
   }
 }

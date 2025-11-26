@@ -1,0 +1,125 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "For at få adgang til vores endpoints skal du angive et klient-ID og en klienthemmelighed. Du kan oprette dem i CPMS: https://portal2.monta.app/",
+        "data": {
+          "client_id": "Klient-ID",
+          "client_secret": "Klienthemmelighed",
+          "scan_interval_charge_points": "Ladepunkter skanningsinterval (sekunder)",
+          "scan_interval_wallet": "Tegnebog skanningsinterval (sekunder)",
+          "scan_interval_transactions": "Transaktioner skanningsinterval (sekunder)"
+        },
+        "data_description": {
+          "scan_interval_charge_points": "Hvor ofte ladepunktsdata skal hentes. Anbefalet: 120 sekunder (Monta har en grænse på 10 anmodninger/min)",
+          "scan_interval_wallet": "Hvor ofte tegnebogsdata skal hentes. Anbefalet: 600 sekunder (10 minutter)",
+          "scan_interval_transactions": "Hvor ofte transaktionsdata skal hentes. Anbefalet: 600 sekunder (10 minutter)"
+        }
+      }
+    },
+    "error": {
+      "auth": "Klient-ID/klienthemmelighed er ugyldige.",
+      "connection": "Kan ikke oprette forbindelse til serveren.",
+      "unknown": "Der opstod en ukendt fejl."
+    },
+    "abort": {
+      "already_configured": "Enheden er allerede konfigureret"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Konfigurer Monta-integrationsindstillinger. Du kan opdatere dine legitimationsoplysninger eller justere skanningsintervallerne her.",
+        "data": {
+          "client_id": "Klient-ID",
+          "client_secret": "Klienthemmelighed",
+          "scan_interval_charge_points": "Ladepunkter skanningsinterval (sekunder)",
+          "scan_interval_wallet": "Tegnebog skanningsinterval (sekunder)",
+          "scan_interval_transactions": "Transaktioner skanningsinterval (sekunder)"
+        },
+        "data_description": {
+          "client_id": "Dit Monta API klient-ID fra https://portal2.monta.app/applications",
+          "client_secret": "Din Monta API klienthemmelighed fra https://portal2.monta.app/applications",
+          "scan_interval_charge_points": "Hvor ofte ladepunktsdata skal hentes. Anbefalet: 120 sekunder (Monta har en grænse på 10 anmodninger/min)",
+          "scan_interval_wallet": "Hvor ofte tegnebogsdata skal hentes. Anbefalet: 600 sekunder (10 minutter)",
+          "scan_interval_transactions": "Hvor ofte transaktionsdata skal hentes. Anbefalet: 600 sekunder (10 minutter)"
+        }
+      }
+    },
+    "error": {
+      "auth": "Klient-ID/klienthemmelighed er ugyldige.",
+      "connection": "Kan ikke oprette forbindelse til serveren.",
+      "unknown": "Der opstod en ukendt fejl."
+    }
+  },
+  "services": {
+    "start_charging": {
+      "description": "Start opladning på valgt lader",
+      "name": "Start opladning",
+      "fields": {
+        "charge_point_id": {
+          "name": "Ladepunkt-ID",
+          "description": "ID'et for laderen."
+        }
+      }
+    },
+    "stop_charging": {
+      "description": "Stop opladning på valgt lader.",
+      "name": "Stop opladning",
+      "fields": {
+        "charge_point_id": {
+          "name": "Ladepunkt-ID",
+          "description": "ID'et for laderen."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "charger_visibility": {
+        "name": "Synlighed",
+        "state": {
+          "public": "Offentlig",
+          "private": "Privat"
+        }
+      },
+      "charger_type": {
+        "name": "Type",
+        "state": {
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "charger_state": {
+        "name": "Tilstand",
+        "state": {
+          "available": "Tilgængelig",
+          "busy": "Optaget",
+          "busy-blocked": "Optaget - Blokeret",
+          "busy-charging": "Optaget - Oplader",
+          "busy-non-charging": "Optaget - Oplader ikke",
+          "busy-non-released": "Optaget - Ikke frigivet",
+          "busy-reserved": "Optaget - Reserveret",
+          "busy-scheduled": "Optaget - Planlagt",
+          "error": "Fejl",
+          "disconnected": "Afbrudt",
+          "passive": "Passiv",
+          "other": "Anden"
+        }
+      },
+      "charger_lastmeterreadingkwh": {
+        "name": "Sidste måleraflæsning"
+      },
+      "charge_state": {
+        "name": "Sidste opladning",
+        "state": {
+          "pending": "Afventer",
+          "active": "Aktiv",
+          "completed": "Fuldført",
+          "failed": "Mislykkedes",
+          "cancelled": "Annulleret"
+        }
+      }
+    }
+  }
+}
