@@ -1,0 +1,15 @@
+name: "Hassfest"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  hassfest: # https://developers.home-assistant.io/blog/2020/04/16/hassfest
+    name: "Hassfest Validation"
+    runs-on: "ubuntu-latest"
+    steps:
+        - name: "Checkout the repository"
+          uses: "actions/checkout@v5.0.1"
+
+        - name: "Run hassfest validation"
+          uses: "home-assistant/actions/hassfest@master"
