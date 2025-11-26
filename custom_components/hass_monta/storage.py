@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.helpers.storage import Store
 from monta import TokenStorage
+
+if TYPE_CHECKING:
+    from homeassistant.helpers.storage import Store
 
 
 class HomeAssistantTokenStorage(TokenStorage):

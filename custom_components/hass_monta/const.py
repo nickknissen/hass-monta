@@ -29,8 +29,6 @@ PREEMPTIVE_REFRESH_TTL_IN_SECONDS = 300
 STORAGE_KEY = "monta_auth"
 STORAGE_VERSION = 1
 STORAGE_ACCESS_EXPIRE_TIME = "access_expire_time"
-STORAGE_ACCESS_TOKEN = "access_token"
-STORAGE_REFRESH_TOKEN = "refresh_token"
 STORAGE_REFRESH_EXPIRE_TIME = "refresh_expire_time"
 
 

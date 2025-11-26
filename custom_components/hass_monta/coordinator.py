@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from monta import (
@@ -17,11 +16,16 @@ from monta.models import Charge, ChargePoint, Wallet, WalletTransaction
 
 from .const import DOMAIN, LOGGER
 
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
 
-class MontaChargePointCoordinator(DataUpdateCoordinator):
+
+class MontaChargePointCoordinator(DataUpdateCoordinator[dict[int, ChargePoint]]):
     """Coordinator for charge point data."""
 
     config_entry: ConfigEntry
+    data: dict[int, ChargePoint]
 
     def __init__(
         self,
@@ -46,11 +50,12 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
                 charge_points[
                     charge_point_id
                 ].charges = await self.client.async_get_charges(charge_point_id)
-            return charge_points
         except MontaApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except MontaApiClientError as exception:
             raise UpdateFailed(exception) from exception
+        else:
+            return charge_points
 
     async def async_start_charge(self, charge_point_id: int) -> Charge:
         """Start a charge."""
@@ -66,8 +71,9 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
         try:
             charges = await self.client.async_get_charges(charge_point_id)
             if not charges:
+                msg = f"No active charges found for charge point {charge_point_id}"
                 raise UpdateFailed(
-                    f"No active charges found for charge point {charge_point_id}"
+                    msg,
                 )
             return await self.client.async_stop_charge(charges[0].id)
         except MontaApiClientAuthenticationError as exception:
@@ -76,10 +82,11 @@ class MontaChargePointCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(exception) from exception
 
 
-class MontaWalletCoordinator(DataUpdateCoordinator):
+class MontaWalletCoordinator(DataUpdateCoordinator[Wallet]):
     """Coordinator for wallet data."""
 
     config_entry: ConfigEntry
+    data: Wallet
 
     def __init__(
         self,
@@ -106,10 +113,11 @@ class MontaWalletCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(exception) from exception
 
 
-class MontaTransactionCoordinator(DataUpdateCoordinator):
+class MontaTransactionCoordinator(DataUpdateCoordinator[list[WalletTransaction]]):
     """Coordinator for transaction data."""
 
     config_entry: ConfigEntry
+    data: list[WalletTransaction]
 
     def __init__(
         self,
