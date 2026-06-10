@@ -55,10 +55,24 @@ class MontaSensorEntityDescription(
 ):
     """Describes MontaSensor sensor entity."""
 
+    unit_fn: Callable[[Any], str | None] | None = None
+
 
 def last_charge_state(data: ChargePoint) -> str | None:
     """Process state for last charge (if available)."""
     return data.charges[0].state if len(data.charges) > 0 else None
+
+
+def last_charge_cost(data: ChargePoint) -> float | None:
+    """Process cost for last charge (if available)."""
+    return data.charges[0].cost if data.charges else None
+
+
+def last_charge_currency(data: ChargePoint) -> str | None:
+    """Process currency for last charge (if available)."""
+    if data.charges and data.charges[0].currency:
+        return data.charges[0].currency.identifier.upper()
+    return None
 
 
 def last_charge_extra_attributes(data: ChargePoint) -> dict[str, Any] | None:
@@ -133,6 +147,15 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         icon="mdi:ev-station",
         value_fn=last_charge_state,
         extra_state_attributes_fn=last_charge_extra_attributes,
+    ),
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
+        key="charge_cost",
+        translation_key="charge_cost",
+        icon="mdi:cash",
+        device_class=SensorDeviceClass.MONETARY,
+        value_fn=last_charge_cost,
+        unit_fn=last_charge_currency,
+        extra_state_attributes_fn=None,
     ),
 )
 
@@ -215,6 +238,15 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
             f"{charge_point_id}_{snake_case(entity_description.key)}",
             [str(charge_point_id)],
         )
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit of measurement of the sensor."""
+        if self.entity_description.unit_fn:
+            return self.entity_description.unit_fn(
+                self.coordinator.data[self.charge_point_id],
+            )
+        return self.entity_description.native_unit_of_measurement
 
     @property
     def native_value(self) -> StateType:

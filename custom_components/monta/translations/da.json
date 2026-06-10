@@ -119,6 +119,9 @@
           "failed": "Mislykkedes",
           "cancelled": "Annulleret"
         }
+      },
+      "charge_cost": {
+        "name": "Sidste opladnings pris"
       }
     }
   }

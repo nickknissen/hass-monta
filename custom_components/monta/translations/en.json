@@ -119,6 +119,9 @@
           "failed": "Failed",
           "cancelled": "Cancelled"
         }
+      },
+      "charge_cost": {
+        "name": "Last Charge Cost"
       }
     }
   }

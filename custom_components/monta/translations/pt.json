@@ -111,6 +111,9 @@
           "failed": "Falhou",
           "cancelled": "Cancelado"
         }
+      },
+      "charge_cost": {
+        "name": "Custo do Último Carregamento"
       }
     }
   }
