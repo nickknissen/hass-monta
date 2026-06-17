@@ -1,6 +1,6 @@
 colorlog==6.10.1
 homeassistant==2025.11.0
 ruff==0.15.17
-pip>=26.1.1,<26.2
+pip>=26.1.2,<26.2
 debugpy==1.8.20
 monta==1.0.5
