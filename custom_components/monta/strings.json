@@ -8,12 +8,14 @@
 					"client_secret": "Client Secret",
 					"scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
 					"scan_interval_wallet": "Wallet Scan Interval (seconds)",
-					"scan_interval_transactions": "Transactions Scan Interval (seconds)"
+					"scan_interval_transactions": "Transactions Scan Interval (seconds)",
+					"charge_point_request_delay": "Delay between chargers (seconds)"
 				},
 				"data_description": {
 					"scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
 					"scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
-					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
+					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)",
+					"charge_point_request_delay": "Pause between fetching each charger's details, to stay under Monta's ~10 requests/min limit. Default 8s. Keep delay x (chargers - 1) below the charge points scan interval. Set 0 to disable."
 				}
 			}
 		},
@@ -35,14 +37,16 @@
 					"client_secret": "Client Secret",
 					"scan_interval_charge_points": "Charge Points Scan Interval (seconds)",
 					"scan_interval_wallet": "Wallet Scan Interval (seconds)",
-					"scan_interval_transactions": "Transactions Scan Interval (seconds)"
+					"scan_interval_transactions": "Transactions Scan Interval (seconds)",
+					"charge_point_request_delay": "Delay between chargers (seconds)"
 				},
 				"data_description": {
 					"client_id": "Your Monta API Client ID from https://portal2.monta.app/applications",
 					"client_secret": "Your Monta API Client Secret from https://portal2.monta.app/applications",
 					"scan_interval_charge_points": "How often to fetch charge point data. Recommended: 120 seconds (Monta has rate limit of 10 requests/min)",
 					"scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
-					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
+					"scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)",
+					"charge_point_request_delay": "Pause between fetching each charger's details, to stay under Monta's ~10 requests/min limit. Default 8s. Keep delay x (chargers - 1) below the charge points scan interval. Set 0 to disable."
 				}
 			}
 		},
