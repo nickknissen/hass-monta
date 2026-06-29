@@ -14,13 +14,16 @@ from homeassistant.helpers.storage import Store
 from monta import MontaApiClient
 
 from .const import (
+    CONF_CHARGE_POINT_REQUEST_DELAY,
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
     CONF_SCAN_INTERVAL_TRANSACTIONS,
     CONF_SCAN_INTERVAL_WALLET,
+    DEFAULT_CHARGE_POINT_REQUEST_DELAY,
     DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
     DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
     DEFAULT_SCAN_INTERVAL_WALLET,
     DOMAIN,
+    LOGGER,
     STORAGE_KEY,
     STORAGE_VERSION,
 )
@@ -68,6 +71,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             CONF_SCAN_INTERVAL_TRANSACTIONS, DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
         ),
     )
+    charge_point_request_delay = entry.options.get(
+        CONF_CHARGE_POINT_REQUEST_DELAY,
+        entry.data.get(
+            CONF_CHARGE_POINT_REQUEST_DELAY, DEFAULT_CHARGE_POINT_REQUEST_DELAY,
+        ),
+    )
 
     # Create API client shared by all coordinators
     client = MontaApiClient(
@@ -82,6 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass=hass,
         client=client,
         scan_interval=scan_interval_charge_points,
+        request_delay=charge_point_request_delay,
     )
     wallet_coordinator = MontaWalletCoordinator(
         hass=hass,
@@ -106,6 +116,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await charge_point_coordinator.async_config_entry_first_refresh()
     await wallet_coordinator.async_config_entry_first_refresh()
     await transaction_coordinator.async_config_entry_first_refresh()
+
+    # Warn if the throttled charge-point cycle can't finish within its interval.
+    charge_point_count = len(charge_point_coordinator.data or {})
+    estimated_cycle = charge_point_request_delay * max(charge_point_count - 1, 0)
+    if estimated_cycle >= scan_interval_charge_points:
+        LOGGER.warning(
+            "Monta charge-point update may not finish in time: %d chargers x %ss "
+            "delay = ~%ds, which is >= the %ds scan interval. Increase the charge "
+            "points scan interval or lower the request delay in the integration "
+            "options.",
+            charge_point_count,
+            charge_point_request_delay,
+            estimated_cycle,
+            scan_interval_charge_points,
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
