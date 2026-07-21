@@ -18,9 +18,11 @@ from monta import (
 )
 
 from .const import (
+    CONF_CHARGE_POINT_REQUEST_DELAY,
     CONF_SCAN_INTERVAL_CHARGE_POINTS,
     CONF_SCAN_INTERVAL_TRANSACTIONS,
     CONF_SCAN_INTERVAL_WALLET,
+    DEFAULT_CHARGE_POINT_REQUEST_DELAY,
     DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
     DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
     DEFAULT_SCAN_INTERVAL_WALLET,
@@ -89,6 +91,20 @@ def build_schema(defaults: dict) -> vol.Schema:
                 selector.NumberSelectorConfig(
                     min=30,
                     max=7200,
+                    unit_of_measurement="seconds",
+                    mode=selector.NumberSelectorMode.BOX,
+                ),
+            ),
+            vol.Optional(
+                CONF_CHARGE_POINT_REQUEST_DELAY,
+                default=defaults.get(
+                    CONF_CHARGE_POINT_REQUEST_DELAY,
+                    DEFAULT_CHARGE_POINT_REQUEST_DELAY,
+                ),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0,
+                    max=60,
                     unit_of_measurement="seconds",
                     mode=selector.NumberSelectorMode.BOX,
                 ),
@@ -212,6 +228,10 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                                 CONF_SCAN_INTERVAL_TRANSACTIONS,
                                 DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
                             ),
+                            CONF_CHARGE_POINT_REQUEST_DELAY: user_input.get(
+                                CONF_CHARGE_POINT_REQUEST_DELAY,
+                                DEFAULT_CHARGE_POINT_REQUEST_DELAY,
+                            ),
                         },
                     )
                 return self.async_create_entry(title="", data=user_input)
@@ -245,6 +265,13 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                 self.config_entry.data.get(
                     CONF_SCAN_INTERVAL_TRANSACTIONS,
                     DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
+                ),
+            ),
+            CONF_CHARGE_POINT_REQUEST_DELAY: self.config_entry.options.get(
+                CONF_CHARGE_POINT_REQUEST_DELAY,
+                self.config_entry.data.get(
+                    CONF_CHARGE_POINT_REQUEST_DELAY,
+                    DEFAULT_CHARGE_POINT_REQUEST_DELAY,
                 ),
             ),
         }

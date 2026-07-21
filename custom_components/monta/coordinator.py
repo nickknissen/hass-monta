@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
@@ -14,7 +15,7 @@ from monta import (
 )
 from monta.models import Charge, ChargePoint, Wallet, WalletTransaction
 
-from .const import DOMAIN, LOGGER
+from .const import DEFAULT_CHARGE_POINT_REQUEST_DELAY, DOMAIN, LOGGER
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -32,9 +33,11 @@ class MontaChargePointCoordinator(DataUpdateCoordinator[dict[int, ChargePoint]])
         hass: HomeAssistant,
         client: MontaApiClient,
         scan_interval: int,
+        request_delay: float = DEFAULT_CHARGE_POINT_REQUEST_DELAY,
     ) -> None:
         """Initialize."""
         self.client = client
+        self.request_delay = request_delay
         super().__init__(
             hass=hass,
             logger=LOGGER,
@@ -43,10 +46,18 @@ class MontaChargePointCoordinator(DataUpdateCoordinator[dict[int, ChargePoint]])
         )
 
     async def _async_update_data(self) -> dict[int, ChargePoint]:
-        """Update charge point data via library."""
+        """Update charge point data via library.
+
+        The detail call for each charge point is spaced out by
+        ``request_delay`` seconds so that accounts with many chargers stay
+        within Monta's ~10 requests/minute limit and don't trigger HTTP 429.
+        """
         try:
             charge_points = await self.client.async_get_charge_points()
-            for charge_point_id in charge_points:
+            for index, charge_point_id in enumerate(charge_points):
+                # Throttle between detail calls (not before the first one).
+                if index > 0 and self.request_delay > 0:
+                    await asyncio.sleep(self.request_delay)
                 charge_points[
                     charge_point_id
                 ].charges = await self.client.async_get_charges(charge_point_id)
