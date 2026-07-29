@@ -13,7 +13,7 @@ from monta import (
     MontaApiClientError,
     MontaApiClientRateLimitError,
 )
-from monta.models import Charge, ChargePoint, Wallet, WalletTransaction
+from monta.models import Charge, ChargePoint, ChargeState, Wallet, WalletTransaction
 
 from .const import DOMAIN, LOGGER
 
@@ -23,6 +23,11 @@ if TYPE_CHECKING:
 
 # Latest charges fetched per update cycle, across all charge points.
 CHARGES_PER_UPDATE = 100
+
+# States in which a charge record no longer changes server-side. Any state
+# change after these comes from a new charge, which by having a newer id is
+# guaranteed to appear in the bulk batch.
+CHARGE_TERMINAL_STATES = {ChargeState.STOPPED.value, ChargeState.COMPLETED.value}
 
 
 def _rate_limit_message(exception: MontaApiClientRateLimitError) -> str:
@@ -62,10 +67,14 @@ class MontaChargePointCoordinator(DataUpdateCoordinator[dict[int, ChargePoint]])
 
         Uses two requests per cycle regardless of charger count: one
         paginated charge-point fetch and one bulk charges fetch, so accounts
-        with many chargers stay under Monta's ~10 requests/minute limit. A
-        charger whose last charge is older than the whole bulk batch gets one
-        targeted fetch, once per charger, so its last-charge sensors still
-        populate.
+        with many chargers stay under Monta's ~10 requests/minute limit.
+
+        Chargers absent from the bulk batch get a targeted fetch when their
+        data can't be derived from it: once ever for chargers never seen
+        with a charge, and every cycle while their latest known charge is
+        still active (its record mutates server-side). A retained terminal
+        charge never goes stale, since any state change comes from a newer
+        charge that is guaranteed to appear in the batch.
         """
         try:
             charge_points = await self.client.async_get_all_charge_points()
@@ -85,25 +94,30 @@ class MontaChargePointCoordinator(DataUpdateCoordinator[dict[int, ChargePoint]])
                 charge.charge_point_id, [],
             ).append(charge)
 
-        needs_backfill: list[int] = []
+        needs_fetch: list[int] = []
         for charge_point_id, charge_point in charge_points.items():
             if charge_point_id in charges_by_charge_point:
                 charge_point.charges = charges_by_charge_point[charge_point_id]
-            elif previous_charges := self._previous_charges(charge_point_id):
-                # A charger with no charge in the latest batch keeps the
-                # charges from the previous cycle instead of going empty.
+                continue
+            previous_charges = self._previous_charges(charge_point_id)
+            if previous_charges:
+                # Keep the previous cycle's charges instead of going empty;
+                # also serves as the fallback if the fetch below rate-limits.
                 charge_point.charges = previous_charges
+                if previous_charges[0].state not in CHARGE_TERMINAL_STATES:
+                    # Still active: the record mutates, so refetch it.
+                    needs_fetch.append(charge_point_id)
             elif charge_point_id not in self._backfilled_charge_points:
-                needs_backfill.append(charge_point_id)
+                needs_fetch.append(charge_point_id)
 
-        for charge_point_id in needs_backfill:
+        for charge_point_id in needs_fetch:
             try:
-                backfill = await self.client.async_get_charges(charge_point_id)
+                fetched = await self.client.async_get_charges(charge_point_id)
             except MontaApiClientAuthenticationError as exception:
                 raise ConfigEntryAuthFailed(exception) from exception
             except MontaApiClientRateLimitError:
                 # Keep the bulk data already gathered; chargers not yet
-                # backfilled stay pending and are retried next cycle.
+                # fetched stay pending and are retried next cycle.
                 LOGGER.warning(
                     "Rate limited while fetching charges for charge point "
                     "%s; retrying on the next scheduled update",
@@ -113,7 +127,7 @@ class MontaChargePointCoordinator(DataUpdateCoordinator[dict[int, ChargePoint]])
             except MontaApiClientError as exception:
                 raise UpdateFailed(exception) from exception
             self._backfilled_charge_points.add(charge_point_id)
-            charge_points[charge_point_id].charges = backfill
+            charge_points[charge_point_id].charges = fetched
 
         return charge_points
 
