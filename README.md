@@ -18,6 +18,18 @@ Platform | Description
 `switch` | Switch something `True` or `False`.
 `services` | `start_charging` and `stop_charging``
 
+### Energy dashboard
+
+Use the **Meter Reading** sensor. It is derived from the charge in progress, so it advances while
+the car is charging.
+
+**Last Meter Reading** is the `lastMeterReadingKwh` value exactly as Monta returns it. Monta only
+refreshes it once the cable is unplugged, so on the Energy dashboard a whole session shows up as a
+single spike at the end.
+
+**Charge Energy** is the energy delivered by the current charge, and resets when a new charge
+starts.
+
 ## Installation
 
 

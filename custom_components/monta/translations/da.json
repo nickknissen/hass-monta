@@ -122,6 +122,12 @@
       },
       "charge_cost": {
         "name": "Sidste opladnings pris"
+      },
+      "charge_meter_reading": {
+        "name": "Måleraflæsning"
+      },
+      "charge_energy": {
+        "name": "Opladningsenergi"
       }
     }
   }
