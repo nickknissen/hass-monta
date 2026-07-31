@@ -58,8 +58,8 @@
       "name": "Start opladning",
       "fields": {
         "charge_point_id": {
-          "name": "Ladepunkt-ID",
-          "description": "ID'et for laderen."
+          "name": "Lader",
+          "description": "Laderen. Vælg en fra listen, eller angiv det numeriske Monta-ladepunkt-ID."
         }
       }
     },
@@ -68,8 +68,8 @@
       "name": "Stop opladning",
       "fields": {
         "charge_point_id": {
-          "name": "Ladepunkt-ID",
-          "description": "ID'et for laderen."
+          "name": "Lader",
+          "description": "Laderen. Vælg en fra listen, eller angiv det numeriske Monta-ladepunkt-ID."
         }
       }
     }
