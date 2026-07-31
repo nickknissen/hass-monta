@@ -1,96 +1,116 @@
-"""Monta components services."""
+"""Monta components services.
+
+The services are registered once for the whole integration, not once per
+config entry: registration is keyed by (domain, service), so a per-entry
+registration would silently replace the previous entry's handler. The entry
+that owns a charge point is therefore resolved per call instead of being
+captured at registration time.
+"""
+
+from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant, ServiceCall
+
+    from .coordinator import MontaChargePointCoordinator
+
 _LOGGER = logging.getLogger(__name__)
+
+SERVICE_START_CHARGING = "start_charging"
+SERVICE_STOP_CHARGING = "stop_charging"
 
 has_id_schema = vol.Schema({vol.Required("charge_point_id"): int})
 
 
-async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Set up services for the Monta component."""
+def _resolve_coordinator(
+    hass: HomeAssistant,
+    charge_point_id: int,
+) -> MontaChargePointCoordinator:
+    """Return the coordinator of the entry that owns this charge point."""
+    for entry_data in hass.data.get(DOMAIN, {}).values():
+        coordinator = entry_data["charge_point"]
+        if coordinator.data and charge_point_id in coordinator.data:
+            return coordinator
+
+    msg = f"Charge point {charge_point_id} not found"
+    raise HomeAssistantError(msg)
+
+
+def _state_error_message(
+    action: str,
+    charge_point_state: str,
+    expected_state: str,
+) -> HomeAssistantError:
+    msg = (
+        f"Cannot {action} charging. "
+        f"Charger is in state '{charge_point_state}'. Expected: {expected_state}"
+    )
+    return HomeAssistantError(msg)
+
+
+async def _service_handle_start_charging(service_call: ServiceCall) -> None:
+    """Handle the start charging service call."""
+    charge_point_id = service_call.data["charge_point_id"]
+    _LOGGER.debug("Called start charging for %s", charge_point_id)
+
+    coordinator = _resolve_coordinator(service_call.hass, charge_point_id)
+
+    charge_point_state = coordinator.data[charge_point_id].state
+    if charge_point_state != "available":
+        raise _state_error_message("start", charge_point_state, "available")
+
+    await coordinator.async_start_charge(charge_point_id)
+    _LOGGER.info(
+        "Successfully started charging for charge point %s",
+        charge_point_id,
+    )
+
+
+async def _service_handle_stop_charging(service_call: ServiceCall) -> None:
+    """Handle the stop charging service call."""
+    charge_point_id = service_call.data["charge_point_id"]
+    _LOGGER.debug("Called stop charging for %s", charge_point_id)
+
+    coordinator = _resolve_coordinator(service_call.hass, charge_point_id)
+
+    charge_point_state = coordinator.data[charge_point_id].state
+    if not charge_point_state.startswith("busy"):
+        raise _state_error_message("stop", charge_point_state, "busy")
+
+    await coordinator.async_stop_charge(charge_point_id)
+    _LOGGER.info(
+        "Successfully stopped charging for charge point %s",
+        charge_point_id,
+    )
+
+
+# LIST OF SERVICES
+SERVICES: list[tuple[str, vol.Schema, Any]] = [
+    (SERVICE_START_CHARGING, has_id_schema, _service_handle_start_charging),
+    (SERVICE_STOP_CHARGING, has_id_schema, _service_handle_stop_charging),
+]
+
+
+def async_setup_services(hass: HomeAssistant) -> None:
+    """Register the Monta services, once for all config entries."""
+    if hass.services.has_service(DOMAIN, SERVICE_START_CHARGING):
+        return
+
     _LOGGER.debug("Set up services")
-
-    coordinators = hass.data[DOMAIN][entry.entry_id]
-    charge_point_coordinator = coordinators["charge_point"]
-
-    async def service_handle_stop_charging(service_call: ServiceCall) -> None:
-        """Handle the stop charging service call."""
-        charge_point_id = service_call.data["charge_point_id"]
-        _LOGGER.debug("Called stop charging for %s", charge_point_id)
-
-        # Check if charge point exists
-        if charge_point_id not in charge_point_coordinator.data:
-            msg = f"Charge point {charge_point_id} not found"
-            raise HomeAssistantError(msg)
-
-        charge_point_state = charge_point_coordinator.data[charge_point_id].state
-        if charge_point_state.startswith("busy"):
-            await charge_point_coordinator.async_stop_charge(charge_point_id)
-            _LOGGER.info(
-                "Successfully stopped charging for charge point %s",
-                charge_point_id,
-            )
-            return
-
-        action = "stop"
-        raise state_error_message(
-            action,
-            charge_point_state,
-            "busy",
-        )
-
-    async def service_handle_start_charging(service_call: ServiceCall) -> None:
-        """Handle the start charging service call."""
-        charge_point_id = service_call.data["charge_point_id"]
-        _LOGGER.debug("Called start charging for %s", charge_point_id)
-
-        # Check if charge point exists
-        if charge_point_id not in charge_point_coordinator.data:
-            msg = f"Charge point {charge_point_id} not found"
-            raise HomeAssistantError(msg)
-
-        charge_point_state = charge_point_coordinator.data[charge_point_id].state
-        if charge_point_state == "available":
-            await charge_point_coordinator.async_start_charge(charge_point_id)
-            _LOGGER.info(
-                "Successfully started charging for charge point %s",
-                charge_point_id,
-            )
-            return
-
-        action = "start"
-        raise state_error_message(
-            action,
-            charge_point_state,
-            "available",
-        )
-
-    def state_error_message(
-        action: str,
-        charge_point_state: str,
-        expected_state: str,
-    ) -> HomeAssistantError:
-        msg = (
-            f"Cannot {action} charging. "
-            f"Charger is in state '{charge_point_state}'. Expected: {expected_state}"
-        )
-        return HomeAssistantError(msg)
-
-    # LIST OF SERVICES
-    services: list[tuple[str, vol.Schema, Any]] = [
-        ("start_charging", has_id_schema, service_handle_start_charging),
-        ("stop_charging", has_id_schema, service_handle_stop_charging),
-    ]
-
-    # Register the services
-    for name, schema, handler in services:
+    for name, schema, handler in SERVICES:
         hass.services.async_register(DOMAIN, name, handler, schema=schema)
+
+
+def async_unload_services(hass: HomeAssistant) -> None:
+    """Remove the Monta services, once the last config entry is unloaded."""
+    _LOGGER.debug("Remove services")
+    for name, _schema, _handler in SERVICES:
+        hass.services.async_remove(DOMAIN, name)
