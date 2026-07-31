@@ -15,6 +15,14 @@
           "scan_interval_wallet": "Hvor ofte tegnebogsdata skal hentes. Anbefalet: 600 sekunder (10 minutter)",
           "scan_interval_transactions": "Hvor ofte transaktionsdata skal hentes. Anbefalet: 600 sekunder (10 minutter)"
         }
+      },
+      "reauth_confirm": {
+        "title": "Godkend Monta igen",
+        "description": "Loginoplysningerne for {name} accepteres ikke længere. Opret eller kopier et nyt klient-ID og en ny klienthemmelighed i CPMS: https://portal2.monta.app/applications",
+        "data": {
+          "client_id": "Klient-ID",
+          "client_secret": "Klienthemmelighed"
+        }
       }
     },
     "error": {
@@ -23,7 +31,8 @@
       "unknown": "Der opstod en ukendt fejl."
     },
     "abort": {
-      "already_configured": "Enheden er allerede konfigureret"
+      "already_configured": "Enheden er allerede konfigureret",
+      "reauth_successful": "Monta er forbundet igen med de nye loginoplysninger"
     }
   },
   "options": {
