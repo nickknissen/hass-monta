@@ -2,7 +2,7 @@
     "name": "Monta",
     "filename": "monta.zip",
     "hide_default_branch": true,
-    "homeassistant": "2023.6.0",
+    "homeassistant": "2026.3.0",
     "render_readme": true,
     "zip_release": true
 }
