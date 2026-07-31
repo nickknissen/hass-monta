@@ -5,11 +5,16 @@ start_charging:
     specify the charge_point_id directly
   fields:
     charge_point_id:
-      description: "The charger point id"
+      name: Charger
+      description: >-
+        The charger. Pick one from the list, or pass the numeric Monta
+        charge point id.
+      example: 12345
       required: true
       selector:
         device:
-          integration: monta
+          filter:
+            integration: monta
 
 stop_charging:
   name: Stop charging
@@ -18,8 +23,13 @@ stop_charging:
     or specify the charge_point_id directly
   fields:
     charge_point_id:
-      description: "The charger point id"
+      name: Charger
+      description: >-
+        The charger. Pick one from the list, or pass the numeric Monta
+        charge point id.
+      example: 12345
       required: true
       selector:
         device:
-          integration: monta
+          filter:
+            integration: monta

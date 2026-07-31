@@ -58,8 +58,8 @@
 			"name": "Start charging",
 			"fields": {
 				"charge_point_id": {
-					"name": "Charge Point ID",
-					"description": "The ID of the charger."
+					"name": "Charger",
+					"description": "The charger. Pick one from the list, or pass the numeric Monta charge point ID."
 				}
 			}
 		},
@@ -68,8 +68,8 @@
 			"name": "Stop charging",
 			"fields": {
 				"charge_point_id": {
-					"name": "Charge Point ID",
-					"description": "The ID of the charger."
+					"name": "Charger",
+					"description": "The charger. Pick one from the list, or pass the numeric Monta charge point ID."
 				}
 			}
 		}

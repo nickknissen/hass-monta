@@ -50,8 +50,8 @@
       "name": "Iniciar carregamento",
       "fields": {
         "charge_point_id": {
-          "name": "ID do ponto de carregamento",
-          "description": "O ID do carregador."
+          "name": "Carregador",
+          "description": "O carregador. Escolha um da lista ou indique o ID numérico do ponto de carregamento da Monta."
         }
       }
     },
@@ -60,8 +60,8 @@
       "name": "Parar carregamento",
       "fields": {
         "charge_point_id": {
-          "name": "ID do ponto de carregamento",
-          "description": "O ID do carregador."
+          "name": "Carregador",
+          "description": "O carregador. Escolha um da lista ou indique o ID numérico do ponto de carregamento da Monta."
         }
       }
     }
