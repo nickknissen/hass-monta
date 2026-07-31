@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN
 
@@ -27,7 +28,34 @@ _LOGGER = logging.getLogger(__name__)
 SERVICE_START_CHARGING = "start_charging"
 SERVICE_STOP_CHARGING = "stop_charging"
 
-has_id_schema = vol.Schema({vol.Required("charge_point_id"): int})
+# The UI picker hands over a Home Assistant device id, while automations pass
+# the numeric Monta charge point id. Both are accepted and normalised by
+# _resolve_charge_point_id.
+has_id_schema = vol.Schema(
+    {vol.Required("charge_point_id"): vol.Any(vol.Coerce(int), str)},
+)
+
+
+def _resolve_charge_point_id(hass: HomeAssistant, value: int | str) -> int:
+    """Return the Monta charge point id for a service call field value.
+
+    The field accepts the numeric charge point id, as used by existing
+    automations, or the device id the UI service picker sends.
+    """
+    if isinstance(value, int):
+        return value
+
+    device = dr.async_get(hass).async_get(value)
+    if device is None:
+        msg = f"Device {value} not found"
+        raise HomeAssistantError(msg)
+
+    for domain, identifier in device.identifiers:
+        if domain == DOMAIN and identifier.isdigit():
+            return int(identifier)
+
+    msg = f"Device {device.name or value} is not a Monta charge point"
+    raise HomeAssistantError(msg)
 
 
 def _resolve_coordinator(
@@ -58,7 +86,9 @@ def _state_error_message(
 
 async def _service_handle_start_charging(service_call: ServiceCall) -> None:
     """Handle the start charging service call."""
-    charge_point_id = service_call.data["charge_point_id"]
+    charge_point_id = _resolve_charge_point_id(
+        service_call.hass, service_call.data["charge_point_id"],
+    )
     _LOGGER.debug("Called start charging for %s", charge_point_id)
 
     coordinator = _resolve_coordinator(service_call.hass, charge_point_id)
@@ -76,7 +106,9 @@ async def _service_handle_start_charging(service_call: ServiceCall) -> None:
 
 async def _service_handle_stop_charging(service_call: ServiceCall) -> None:
     """Handle the stop charging service call."""
-    charge_point_id = service_call.data["charge_point_id"]
+    charge_point_id = _resolve_charge_point_id(
+        service_call.hass, service_call.data["charge_point_id"],
+    )
     _LOGGER.debug("Called stop charging for %s", charge_point_id)
 
     coordinator = _resolve_coordinator(service_call.hass, charge_point_id)
