@@ -26,7 +26,7 @@ from .coordinator import (
     MontaTransactionCoordinator,
     MontaWalletCoordinator,
 )
-from .services import async_setup_services
+from .services import async_setup_services, async_unload_services
 from .storage import (
     HomeAssistantTokenStorage,
     async_get_token_store,
@@ -110,7 +110,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    await async_setup_services(hass, entry)
+    async_setup_services(hass)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
@@ -121,6 +121,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
     if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
+        if not hass.data[DOMAIN]:
+            # The services are shared by all entries, so they outlive any
+            # single one of them.
+            async_unload_services(hass)
     return unloaded
 
 
