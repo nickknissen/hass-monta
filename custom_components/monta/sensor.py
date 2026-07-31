@@ -84,6 +84,23 @@ def last_charge_extra_attributes(data: ChargePoint) -> dict[str, Any] | None:
     return None
 
 
+def charge_meter_reading(data: ChargePoint) -> float | None:
+    """Process the meter reading, including the charge in progress.
+
+    lastMeterReadingKwh only refreshes once the cable is unplugged, so derive
+    the reading from the newest charge and fall back to the charge point's own
+    value when that charge carries no meter data.
+    """
+    if data.charges and (start := data.charges[0].start_meter_kwh) is not None:
+        return start + (data.charges[0].consumed_kwh or 0)
+    return data.last_meter_reading_kwh
+
+
+def charge_consumed_kwh(data: ChargePoint) -> float | None:
+    """Process energy delivered by the newest charge, while it is running."""
+    return data.charges[0].consumed_kwh if data.charges else None
+
+
 def wallet_credit_extra_attribute(data: Wallet) -> dict[str, Any] | None:
     """Process extra attributes for last charge (if available)."""
     if data.balance:
@@ -155,6 +172,28 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.MONETARY,
         value_fn=last_charge_cost,
         unit_fn=last_charge_currency,
+        extra_state_attributes_fn=None,
+    ),
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
+        key="charge_meter_reading",
+        translation_key="charge_meter_reading",
+        icon="mdi:counter",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=3,
+        value_fn=charge_meter_reading,
+        extra_state_attributes_fn=None,
+    ),
+    MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
+        key="charge_energy",
+        translation_key="charge_energy",
+        icon="mdi:lightning-bolt",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=3,
+        value_fn=charge_consumed_kwh,
         extra_state_attributes_fn=None,
     ),
 )

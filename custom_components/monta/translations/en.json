@@ -122,6 +122,12 @@
       },
       "charge_cost": {
         "name": "Last Charge Cost"
+      },
+      "charge_meter_reading": {
+        "name": "Meter Reading"
+      },
+      "charge_energy": {
+        "name": "Charge Energy"
       }
     }
   }

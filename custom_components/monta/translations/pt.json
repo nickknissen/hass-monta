@@ -114,6 +114,12 @@
       },
       "charge_cost": {
         "name": "Custo do Último Carregamento"
+      },
+      "charge_meter_reading": {
+        "name": "Leitura do Medidor"
+      },
+      "charge_energy": {
+        "name": "Energia do Carregamento"
       }
     }
   }
