@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET, Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.storage import Store
 from monta import MontaApiClient
 
 from .const import (
@@ -21,8 +20,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
     DEFAULT_SCAN_INTERVAL_WALLET,
     DOMAIN,
-    STORAGE_KEY,
-    STORAGE_VERSION,
 )
 from .coordinator import (
     MontaChargePointCoordinator,
@@ -30,7 +27,11 @@ from .coordinator import (
     MontaWalletCoordinator,
 )
 from .services import async_setup_services
-from .storage import HomeAssistantTokenStorage
+from .storage import (
+    HomeAssistantTokenStorage,
+    async_get_token_store,
+    async_remove_legacy_token_store,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -48,8 +49,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
 
-    store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
-    await store.async_remove()
+    await async_remove_legacy_token_store(hass)
+    store = async_get_token_store(hass, entry.entry_id)
 
     # Get individual scan intervals for each data type
     scan_interval_charge_points = entry.options.get(
@@ -121,6 +122,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unloaded
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Discard the entry's cached tokens when the entry is deleted."""
+    await async_get_token_store(hass, entry.entry_id).async_remove()
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:

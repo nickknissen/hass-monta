@@ -9,7 +9,6 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
-from homeassistant.helpers.storage import Store
 from monta import (
     MontaApiClient,
     MontaApiClientAuthenticationError,
@@ -26,10 +25,8 @@ from .const import (
     DEFAULT_SCAN_INTERVAL_WALLET,
     DOMAIN,
     LOGGER,
-    STORAGE_KEY,
-    STORAGE_VERSION,
 )
-from .storage import HomeAssistantTokenStorage
+from .storage import async_get_token_store
 
 if TYPE_CHECKING:
     from monta.models import TokenResponse
@@ -137,7 +134,7 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,  # noqa: ARG004
+        _config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
         return MontaOptionsFlowHandler()
@@ -146,13 +143,12 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, client_id: str, client_secret: str,
     ) -> TokenResponse:
         """Validate credentials."""
+        # No token storage: requesting a token here must not touch the tokens
+        # cached for an existing entry.
         client = MontaApiClient(
             client_id=client_id,
             client_secret=client_secret,
             session=async_create_clientsession(self.hass),
-            token_storage=HomeAssistantTokenStorage(
-                Store(self.hass, STORAGE_VERSION, STORAGE_KEY),
-            ),
         )
         return await client.async_request_token()
 
@@ -195,6 +191,11 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                 ) or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(
                     CONF_CLIENT_SECRET,
                 ):
+                    # Drop the cached tokens before the entry reloads with the
+                    # new credentials, they belong to the old ones.
+                    await async_get_token_store(
+                        self.hass, self.config_entry.entry_id,
+                    ).async_remove()
                     self.hass.config_entries.async_update_entry(
                         self.config_entry,
                         data={
@@ -259,12 +260,11 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
         self, client_id: str, client_secret: str,
     ) -> TokenResponse:
         """Validate credentials."""
+        # No token storage: validating here must not overwrite the tokens
+        # cached for this entry, which still belong to the old credentials.
         client = MontaApiClient(
             client_id=client_id,
             client_secret=client_secret,
             session=async_create_clientsession(self.hass),
-            token_storage=HomeAssistantTokenStorage(
-                Store(self.hass, STORAGE_VERSION, STORAGE_KEY),
-            ),
         )
         return await client.async_request_token()
