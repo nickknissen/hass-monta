@@ -15,12 +15,23 @@
           "scan_interval_wallet": "Com que frequência buscar dados da carteira. Recomendado: 600 segundos (10 minutos)",
           "scan_interval_transactions": "Com que frequência buscar dados de transações. Recomendado: 600 segundos (10 minutos)"
         }
+      },
+      "reauth_confirm": {
+        "title": "Autenticar novamente a Monta",
+        "description": "As credenciais de {name} já não são aceites. Crie ou copie um novo ID e segredo do cliente no CPMS: https://portal2.monta.app/applications",
+        "data": {
+          "client_id": "ID do cliente",
+          "client_secret": "Segredo do cliente"
+        }
       }
     },
     "error": {
       "auth": "ID do cliente/segredo do cliente está incorreto.",
       "connection": "Não foi possível ligar ao servidor.",
       "unknown": "Ocorreu um erro desconhecido."
+    },
+    "abort": {
+      "reauth_successful": "A Monta foi ligada novamente com as novas credenciais"
     }
   },
   "options": {

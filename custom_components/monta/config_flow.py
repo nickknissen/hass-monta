@@ -29,7 +29,27 @@ from .const import (
 from .storage import async_get_token_store
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from typing import Any
+
     from monta.models import TokenResponse
+
+
+def build_credentials_schema(defaults: dict) -> vol.Schema:
+    """Build a schema asking only for credentials, as reauthentication does."""
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_CLIENT_ID,
+                default=defaults.get(CONF_CLIENT_ID),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT),
+            ),
+            vol.Required(CONF_CLIENT_SECRET): selector.TextSelector(
+                selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD),
+            ),
+        },
+    )
 
 
 def build_schema(defaults: dict) -> vol.Schema:
@@ -129,6 +149,57 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=build_schema(user_input or {}),
+            errors=_errors,
+        )
+
+    async def async_step_reauth(
+        self,
+        _entry_data: Mapping[str, Any],
+    ) -> config_entries.FlowResult:
+        """Handle credentials the API has stopped accepting.
+
+        Reached whenever a coordinator turns a 401 into ConfigEntryAuthFailed,
+        which makes Home Assistant start a reauth flow for the entry.
+        """
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self,
+        user_input: dict | None = None,
+    ) -> config_entries.FlowResult:
+        """Ask for working credentials and put them on the existing entry."""
+        entry = self._get_reauth_entry()
+        _errors = {}
+        if user_input is not None:
+            try:
+                await self._test_credentials(
+                    client_id=user_input[CONF_CLIENT_ID],
+                    client_secret=user_input[CONF_CLIENT_SECRET],
+                )
+            except MontaApiClientAuthenticationError as exception:
+                LOGGER.warning(exception)
+                _errors["base"] = "auth"
+            except MontaApiClientCommunicationError as exception:
+                LOGGER.error(exception)
+                _errors["base"] = "connection"
+            except MontaApiClientError as exception:
+                LOGGER.exception(exception)
+                _errors["base"] = "unknown"
+            else:
+                # Whatever is cached was minted for the old credentials.
+                await async_get_token_store(
+                    self.hass, entry.entry_id,
+                ).async_remove()
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data_updates=user_input,
+                )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=build_credentials_schema(
+                {CONF_CLIENT_ID: entry.data.get(CONF_CLIENT_ID)},
+            ),
             errors=_errors,
         )
 

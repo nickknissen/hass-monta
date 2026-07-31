@@ -15,6 +15,14 @@
           "scan_interval_wallet": "How often to fetch wallet data. Recommended: 600 seconds (10 minutes)",
           "scan_interval_transactions": "How often to fetch transaction data. Recommended: 600 seconds (10 minutes)"
         }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Monta",
+        "description": "The credentials for {name} are no longer accepted. Create or copy a new Client ID and Client Secret in CPMS: https://portal2.monta.app/applications",
+        "data": {
+          "client_id": "Client ID",
+          "client_secret": "Client Secret"
+        }
       }
     },
     "error": {
@@ -23,7 +31,8 @@
       "unknown": "Unknown error occurred."
     },
     "abort": {
-      "already_configured": "Device is already configured"
+      "already_configured": "Device is already configured",
+      "reauth_successful": "Monta reconnected with the new credentials"
     }
   },
   "options": {
