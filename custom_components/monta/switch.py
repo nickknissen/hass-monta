@@ -5,16 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import (
-    ENTITY_ID_FORMAT,
     SwitchEntity,
     SwitchEntityDescription,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import generate_entity_id
 
 from .const import DOMAIN, ChargerStatus
-from .entity import MontaEntity
-from .utils import snake_case
+from .entity import MontaEntity, charge_point_unique_id
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -44,6 +41,7 @@ async def async_setup_entry(
             [
                 MontaSwitch(
                     charge_point_coordinator,
+                    entry,
                     description,
                     charge_point_id,
                 )
@@ -60,16 +58,15 @@ class MontaSwitch(MontaEntity, SwitchEntity):
     def __init__(
         self,
         coordinator: MontaChargePointCoordinator,
+        entry: ConfigEntry,
         entity_description: SwitchEntityDescription,
         charge_point_id: int,
     ) -> None:
         """Initialize the switch class."""
         super().__init__(coordinator, charge_point_id)
         self.entity_description = entity_description
-        self._attr_unique_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            f"{charge_point_id}_{snake_case(entity_description.key)}",
-            [f"{charge_point_id}"],
+        self._attr_unique_id = charge_point_unique_id(
+            entry.entry_id, charge_point_id, entity_description.key,
         )
         self._local_state = None
 

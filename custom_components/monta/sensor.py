@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import (
-    ENTITY_ID_FORMAT,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
@@ -15,7 +14,6 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     UnitOfEnergy,
 )
-from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -28,8 +26,12 @@ from .coordinator import (
     MontaTransactionCoordinator,
     MontaWalletCoordinator,
 )
-from .entity import MontaEntity
-from .utils import snake_case
+from .entity import (
+    MontaEntity,
+    account_device_info,
+    account_unique_id,
+    charge_point_unique_id,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -200,8 +202,8 @@ CHARGE_POINT_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
 
 WALLET_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
-        key="monta-wallet-amount",
-        name="Monta - Personal Wallet",
+        key="wallet_amount",
+        name="Personal wallet",
         icon="mdi:wallet",
         device_class=SensorDeviceClass.MONETARY,
         value_fn=lambda data: data.balance.amount if data.balance else None,
@@ -211,8 +213,8 @@ WALLET_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
 
 TRANSACTION_ENTITY_DESCRIPTIONS: tuple[MontaSensorEntityDescription, ...] = (
     MontaSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
-        key="monta-latest-wallet-transactions",
-        name="Monta - Latest Wallet Transactions",
+        key="latest_wallet_transactions",
+        name="Latest wallet transactions",
         icon="mdi:wallet-outline",
         value_fn=lambda data: data,
         extra_state_attributes_fn=None,
@@ -264,7 +266,7 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MontaChargePointCoordinator,
-        _: ConfigEntry,
+        entry: ConfigEntry,
         entity_description: MontaSensorEntityDescription,
         charge_point_id: int,
     ) -> None:
@@ -272,10 +274,8 @@ class MontaChargePointSensor(MontaEntity, SensorEntity):
         super().__init__(coordinator, charge_point_id)
 
         self.entity_description = entity_description
-        self._attr_unique_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            f"{charge_point_id}_{snake_case(entity_description.key)}",
-            [str(charge_point_id)],
+        self._attr_unique_id = charge_point_unique_id(
+            entry.entry_id, charge_point_id, entity_description.key,
         )
 
     @property
@@ -319,18 +319,17 @@ class MontaWalletSensor(CoordinatorEntity[MontaWalletCoordinator], SensorEntity)
     def __init__(
         self,
         coordinator: MontaWalletCoordinator,
-        _: ConfigEntry,
+        entry: ConfigEntry,
         entity_description: MontaSensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(coordinator)
 
         self.entity_description = entity_description
-        self._attr_unique_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            f"monta_{snake_case(entity_description.key)}",
-            ["personal_monta_wallet"],
+        self._attr_unique_id = account_unique_id(
+            entry.entry_id, entity_description.key,
         )
+        self._attr_device_info = account_device_info(entry)
 
     @property
     def native_unit_of_measurement(self) -> str | None:
@@ -371,18 +370,17 @@ class MontaTransactionsSensor(
     def __init__(
         self,
         coordinator: MontaTransactionCoordinator,
-        _: ConfigEntry,
+        entry: ConfigEntry,
         entity_description: MontaSensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(coordinator)
 
         self.entity_description = entity_description
-        self._attr_unique_id = generate_entity_id(
-            ENTITY_ID_FORMAT,
-            f"monta_{snake_case(entity_description.key)}",
-            ["monta_latest_transactions"],
+        self._attr_unique_id = account_unique_id(
+            entry.entry_id, entity_description.key,
         )
+        self._attr_device_info = account_device_info(entry)
 
     @property
     def native_value(self) -> StateType:
