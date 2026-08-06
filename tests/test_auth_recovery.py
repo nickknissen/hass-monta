@@ -1,16 +1,20 @@
 """Tests for what the integration does when Monta rejects a token.
 
-Covers the first half of issue #321: an expired access token must not turn
-into a request for the user's credentials.
+Covers the two halves of issue #321: an expired access token must not turn
+into a request for the user's credentials, and finishing a flow must not set
+the entry up twice over the same rotating tokens.
 """
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntryState
+from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
+from homeassistant.data_entry_flow import FlowResultType
 from monta import MontaApiClientAuthenticationError
 
 from custom_components.monta.const import DOMAIN
@@ -49,6 +53,26 @@ async def setup_entry(hass: HomeAssistant, entry: MockConfigEntry) -> None:
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+
+
+def assert_entry_survived(
+    entry: MockConfigEntry,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Assert the entry came back up with nothing thrown on the way.
+
+    An update listener is what reloads an entry from outside Home Assistant's
+    own setup, and such a reload raises out of
+    async_config_entry_first_refresh: the coordinators are built with no
+    config entry in context. Nobody awaits that task, so the exception only
+    reaches the log once it is garbage collected, which is too late to catch
+    here reliably. The absence of the listener is the part worth pinning.
+    """
+    assert entry.state is ConfigEntryState.LOADED
+    assert entry.update_listeners == []
+    assert [
+        record for record in caplog.records if record.levelno >= logging.ERROR
+    ] == []
 
 
 async def test_expired_tokens_recover_without_asking_the_user(
@@ -193,3 +217,101 @@ async def test_a_refused_backfill_does_not_strand_the_chargers_before_it(
     assert client.targeted == [1, 2, 1, 2]
     assert coordinator.data[1].charges
     assert coordinator.data[2].charges
+
+
+async def test_reauth_sets_the_entry_up_once(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    clients: list[FakeMontaClient],
+    mock_client: None,  # noqa: ARG001
+    mock_credential_check: None,  # noqa: ARG001
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Finishing reauthentication reloads the entry exactly once.
+
+    A second, concurrent setup would give the account two clients refreshing
+    the same rotating tokens, and whichever refreshed second would be handed
+    a 401 an hour later.
+    """
+    await setup_entry(hass, config_entry)
+    assert len(clients) == 1
+
+    result = await config_entry.start_reauth_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_CLIENT_ID: "new-id", CONF_CLIENT_SECRET: "new-secret"},
+    )
+    await hass.async_block_till_done()
+
+    assert_entry_survived(config_entry, caplog)
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"
+    assert config_entry.data[CONF_CLIENT_ID] == "new-id"
+    assert len(clients) == 2
+
+
+async def test_reauth_reloads_even_when_the_credentials_are_unchanged(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    clients: list[FakeMontaClient],
+    mock_client: None,  # noqa: ARG001
+    mock_credential_check: None,  # noqa: ARG001
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Resubmitting the same credentials still reloads the entry.
+
+    The usual reason a user reaches this form is stale tokens, so they will
+    often retype what is already configured. Leaving the entry untouched
+    would leave it broken with nothing to show for the trip.
+    """
+    await setup_entry(hass, config_entry)
+
+    result = await config_entry.start_reauth_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_CLIENT_ID: config_entry.data[CONF_CLIENT_ID],
+            CONF_CLIENT_SECRET: config_entry.data[CONF_CLIENT_SECRET],
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert_entry_survived(config_entry, caplog)
+    assert result["type"] is FlowResultType.ABORT
+    assert len(clients) == 2
+
+
+async def test_options_flow_sets_the_entry_up_once(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    clients: list[FakeMontaClient],
+    mock_client: None,  # noqa: ARG001
+    mock_credential_check: None,  # noqa: ARG001
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Saving the options reloads the entry exactly once.
+
+    New credentials are the case that used to write the entry twice, once for
+    the data and once for the options, and so set it up twice.
+    """
+    await setup_entry(hass, config_entry)
+    assert len(clients) == 1
+
+    result = await hass.config_entries.options.async_init(config_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            CONF_CLIENT_ID: "new-id",
+            CONF_CLIENT_SECRET: "new-secret",
+            "scan_interval_charge_points": 300,
+            "scan_interval_wallet": 600,
+            "scan_interval_transactions": 600,
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert_entry_survived(config_entry, caplog)
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert config_entry.data[CONF_CLIENT_ID] == "new-id"
+    assert config_entry.options["scan_interval_charge_points"] == 300
+    assert len(clients) == 2

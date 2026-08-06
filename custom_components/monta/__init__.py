@@ -178,7 +178,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async_setup_services(hass)
 
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    # No update listener: the config and options flows ask for the reload
+    # themselves. Home Assistant deprecated pairing a listener with a flow
+    # that reloads, because between them the entry gets set up twice, and two
+    # setups mean two clients refreshing the same rotating Monta tokens.
 
     return True
 
@@ -197,9 +200,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Discard the entry's cached tokens when the entry is deleted."""
     await async_get_token_store(hass, entry.entry_id).async_remove()
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
