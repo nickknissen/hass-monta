@@ -190,6 +190,9 @@ class MontaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await async_get_token_store(
                     self.hass, entry.entry_id,
                 ).async_remove()
+                # Reloads even when the credentials came back unchanged,
+                # which is the common case: it is usually the cached tokens
+                # that went bad, not the client id and secret.
                 return self.async_update_reload_and_abort(
                     entry,
                     data_updates=user_input,
@@ -234,12 +237,13 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the options."""
         _errors = {}
         if user_input is not None:
-            # Only validate credentials if they were changed
-            if user_input.get(CONF_CLIENT_ID) != self.config_entry.data.get(
+            credentials_changed = user_input.get(
                 CONF_CLIENT_ID,
-            ) or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(
+            ) != self.config_entry.data.get(CONF_CLIENT_ID) or user_input.get(
                 CONF_CLIENT_SECRET,
-            ):
+            ) != self.config_entry.data.get(CONF_CLIENT_SECRET)
+
+            if credentials_changed:
                 try:
                     await self._test_credentials(
                         client_id=user_input[CONF_CLIENT_ID],
@@ -256,39 +260,45 @@ class MontaOptionsFlowHandler(config_entries.OptionsFlow):
                     _errors["base"] = "unknown"
 
             if not _errors:
-                # Update the config entry data with new credentials if they changed
-                if user_input.get(CONF_CLIENT_ID) != self.config_entry.data.get(
-                    CONF_CLIENT_ID,
-                ) or user_input.get(CONF_CLIENT_SECRET) != self.config_entry.data.get(
-                    CONF_CLIENT_SECRET,
-                ):
+                if credentials_changed:
                     # Drop the cached tokens before the entry reloads with the
                     # new credentials, they belong to the old ones.
                     await async_get_token_store(
                         self.hass, self.config_entry.entry_id,
                     ).async_remove()
-                    self.hass.config_entries.async_update_entry(
-                        self.config_entry,
-                        data={
-                            CONF_CLIENT_ID: user_input[CONF_CLIENT_ID],
-                            CONF_CLIENT_SECRET: user_input[CONF_CLIENT_SECRET],
-                            CONF_SCAN_INTERVAL_CHARGE_POINTS: user_input.get(
-                                CONF_SCAN_INTERVAL_CHARGE_POINTS,
-                                DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
-                            ),
-                            CONF_SCAN_INTERVAL_WALLET: user_input.get(
-                                CONF_SCAN_INTERVAL_WALLET,
-                                DEFAULT_SCAN_INTERVAL_WALLET,
-                            ),
-                            CONF_SCAN_INTERVAL_TRANSACTIONS: user_input.get(
-                                CONF_SCAN_INTERVAL_TRANSACTIONS,
-                                DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
-                            ),
-                        },
-                    )
+                # Data and options are written together, and the reload is
+                # asked for here rather than from an update listener: pairing
+                # a listener with a flow that reloads is deprecated in Home
+                # Assistant, and set the entry up twice. Writing the options
+                # now also leaves async_create_entry below nothing to change.
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry,
+                    options=user_input,
+                    data={
+                        CONF_CLIENT_ID: user_input[CONF_CLIENT_ID],
+                        CONF_CLIENT_SECRET: user_input[CONF_CLIENT_SECRET],
+                        CONF_SCAN_INTERVAL_CHARGE_POINTS: user_input.get(
+                            CONF_SCAN_INTERVAL_CHARGE_POINTS,
+                            DEFAULT_SCAN_INTERVAL_CHARGE_POINTS,
+                        ),
+                        CONF_SCAN_INTERVAL_WALLET: user_input.get(
+                            CONF_SCAN_INTERVAL_WALLET,
+                            DEFAULT_SCAN_INTERVAL_WALLET,
+                        ),
+                        CONF_SCAN_INTERVAL_TRANSACTIONS: user_input.get(
+                            CONF_SCAN_INTERVAL_TRANSACTIONS,
+                            DEFAULT_SCAN_INTERVAL_TRANSACTIONS,
+                        ),
+                    },
+                )
+                self.hass.config_entries.async_schedule_reload(
+                    self.config_entry.entry_id,
+                )
                 return self.async_create_entry(title="", data=user_input)
 
-        # Build defaults from user_input -> options -> data
+        # Credentials are shown back as they were typed, since this form
+        # re-renders when the check on them fails. The intervals are read
+        # from what is saved: options first, then the entry's data.
         defaults = {
             CONF_CLIENT_ID: (user_input or {}).get(
                 CONF_CLIENT_ID,

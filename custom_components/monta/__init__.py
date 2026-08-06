@@ -26,6 +26,7 @@ from .const import (
     LOGGER,
 )
 from .coordinator import (
+    MontaAuthGuard,
     MontaChargePointCoordinator,
     MontaTransactionCoordinator,
     MontaWalletCoordinator,
@@ -112,7 +113,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_remove_legacy_token_store(hass)
     store = async_get_token_store(hass, entry.entry_id)
 
-    # Get individual scan intervals for each data type
     scan_interval_charge_points = entry.options.get(
         CONF_SCAN_INTERVAL_CHARGE_POINTS,
         entry.data.get(
@@ -130,7 +130,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ),
     )
 
-    # Create API client shared by all coordinators
     client = MontaApiClient(
         client_id=entry.data[CONF_CLIENT_ID],
         client_secret=entry.data[CONF_CLIENT_SECRET],
@@ -138,24 +137,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         token_storage=HomeAssistantTokenStorage(store),
     )
 
-    # Create separate coordinators for each data type
+    # The coordinators share the client, so they share its tokens and must
+    # share the guard that replaces them.
+    auth = MontaAuthGuard(client)
+
     charge_point_coordinator = MontaChargePointCoordinator(
         hass=hass,
+        entry=entry,
         client=client,
+        auth=auth,
         scan_interval=scan_interval_charge_points,
     )
     wallet_coordinator = MontaWalletCoordinator(
         hass=hass,
+        entry=entry,
         client=client,
+        auth=auth,
         scan_interval=scan_interval_wallet,
     )
     transaction_coordinator = MontaTransactionCoordinator(
         hass=hass,
+        entry=entry,
         client=client,
+        auth=auth,
         scan_interval=scan_interval_transactions,
     )
 
-    # Store coordinators in a dictionary
     hass.data[DOMAIN][entry.entry_id] = {
         "charge_point": charge_point_coordinator,
         "wallet": wallet_coordinator,
@@ -163,7 +170,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    # Refresh all coordinators
     await charge_point_coordinator.async_config_entry_first_refresh()
     await wallet_coordinator.async_config_entry_first_refresh()
     await transaction_coordinator.async_config_entry_first_refresh()
@@ -172,7 +178,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async_setup_services(hass)
 
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    # No update listener: the config and options flows ask for the reload
+    # themselves. Home Assistant deprecated pairing a listener with a flow
+    # that reloads, because between them the entry gets set up twice, and two
+    # setups mean two clients refreshing the same rotating Monta tokens.
 
     return True
 
@@ -191,9 +200,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Discard the entry's cached tokens when the entry is deleted."""
     await async_get_token_store(hass, entry.entry_id).async_remove()
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
