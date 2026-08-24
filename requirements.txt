@@ -5,4 +5,4 @@ pip>=26.2,<26.3
 debugpy==1.8.21
 monta==1.2.0
 pytest==9.0.3
-pytest-homeassistant-custom-component==0.13.348
+pytest-homeassistant-custom-component==0.13.356
