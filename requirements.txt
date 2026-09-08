@@ -4,5 +4,5 @@ ruff==0.16.6
 pip>=26.2.1,<26.3
 debugpy==1.8.21
 monta==1.2.0
-pytest==9.0.3
+pytest==9.1.1
 pytest-homeassistant-custom-component==0.13.348
