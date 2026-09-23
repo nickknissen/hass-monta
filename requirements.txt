@@ -2,7 +2,7 @@ colorlog==6.12.0
 homeassistant==2026.7.4
 ruff==0.16.8
 pip>=26.2.1,<26.3
-debugpy==1.8.21
+debugpy==1.8.22
 monta==1.2.0
 pytest==9.0.3
 pytest-homeassistant-custom-component==0.13.348
