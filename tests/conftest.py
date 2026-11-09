@@ -9,22 +9,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from monta import MontaApiClientAuthenticationError
 from monta.models import TokenResponse
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.monta.const import DOMAIN
 
-pytest_plugins = "pytest_homeassistant_custom_component"
-
 CLIENT_ID = "client-id"
 CLIENT_SECRET = "client-secret"
-
-
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(
-    enable_custom_integrations: None,  # noqa: ARG001
-) -> None:
-    """Load the integration from custom_components."""
-    return
 
 
 class FakeMontaClient:
