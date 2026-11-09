@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from homeassistant.core import HomeAssistant
-    from pytest_homeassistant_custom_component.common import MockConfigEntry
+    from pytest_homeassistant.common import MockConfigEntry
 
     from .conftest import FakeMontaClient
 
