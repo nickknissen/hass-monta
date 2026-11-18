@@ -93,6 +93,7 @@ class MontaSwitch(MontaEntity, SwitchEntity):
             ChargerStatus.BUSY_CHARGING,
             ChargerStatus.BUSY,
             ChargerStatus.BUSY_SCHEDULED,
+            ChargerStatus.BUSY_NON_CHARGING,
         }
 
     async def async_turn_on(self, **_: Any) -> None:  # noqa: ANN401
